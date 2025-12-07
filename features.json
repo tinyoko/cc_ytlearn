@@ -66,63 +66,63 @@
     "id": "B001",
     "feature_area": "VideoImport",
     "description": "YouTube Data APIのキー管理（環境変数）およびAPIクライアント初期化ロジックを作成する。",
-    "status": false,
+    "status": true,
     "priority": 10
   },
   {
     "id": "B002",
     "feature_area": "VideoImport",
     "description": "ユーザーがアップロードした動画リストを取得するためのバックエンド関数（/api/youtube/my-videos）を作成する。",
-    "status": false,
+    "status": true,
     "priority": 11
   },
   {
     "id": "B003",
     "feature_area": "VideoImport",
     "description": "指定されたYouTubeプレイリストIDから動画リストを取得するためのバックエンド関数（/api/youtube/playlist）を作成する。",
-    "status": false,
+    "status": true,
     "priority": 12
   },
   {
     "id": "B004",
     "feature_area": "VideoImport",
     "description": "動画の字幕（トランスクリプト）データを取得するAPI連携ロジックを作成する。（youtube-transcript等のライブラリを検討）",
-    "status": false,
+    "status": true,
     "priority": 13
   },
   {
     "id": "B005",
     "feature_area": "VideoImport",
     "description": "動画情報（ID, タイトル）とトランスクリプトを保存するためのデータベーススキーマを定義する。（docs/import_video.md参照）",
-    "status": false,
+    "status": true,
     "priority": 14
   },
   {
     "id": "B006",
     "feature_area": "VideoImport",
     "description": "インポート元を選択するためのモーダル/UIコンポーネントを作成する（自分の動画/プレイリストURL入力）。",
-    "status": false,
+    "status": true,
     "priority": 15
   },
   {
     "id": "B007",
     "feature_area": "VideoImport",
     "description": "プレイリストURL入力フィールドのバリデーション（YouTubeプレイリストURLの正規表現チェック）を実装する。",
-    "status": false,
+    "status": true,
     "priority": 16
   },
   {
     "id": "B008",
     "feature_area": "VideoImport",
     "description": "インポート対象の動画を選択するためのチェックボックス付きリストUIを作成する。（全選択/解除ボタン含む）",
-    "status": false,
+    "status": true,
     "priority": 17
   },
   {
     "id": "B009",
     "feature_area": "VideoImport",
     "description": "選択された複数の動画をバックエンドに送信し、インポート処理を開始する関数（/api/videos/import）を作成する。",
-    "status": false,
+    "status": true,
     "priority": 18
   },
   {

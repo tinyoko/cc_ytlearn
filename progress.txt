@@ -47,3 +47,31 @@
 - 変更ファイル: src/app/login/page.tsx, src/app/dashboard/page.tsx
 - 変更ファイル: src/components/auth/login-button.tsx, src/components/auth/logout-button.tsx
 - 変更ファイル: src/components/providers/session-provider.tsx
+
+[2024-12-07 14:00] B001: 完了
+- YouTube Data APIクライアントを作成
+- ヘルパー関数（URL解析、duration変換）を実装
+- 変更ファイル: src/lib/youtube.ts
+
+[2024-12-07 14:05] B002-B003: 完了
+- 自分のアップロード動画取得API（/api/youtube/my-videos）を作成
+- プレイリスト動画取得API（/api/youtube/playlist）を作成
+- 変更ファイル: src/app/api/youtube/my-videos/route.ts, src/app/api/youtube/playlist/route.ts
+
+[2024-12-07 14:10] B004: 完了
+- トランスクリプト取得ロジックを作成
+- 日本語/英語の字幕取得に対応
+- 変更ファイル: src/lib/transcript.ts
+
+[2024-12-07 14:15] B005: 完了
+- Prismaスキーマを定義（User, Account, Session, Video, Transcript, Chapter）
+- SQLiteデータベースを初期化
+- 変更ファイル: prisma/schema.prisma, src/lib/prisma.ts
+
+[2024-12-07 14:20] B006-B009: 完了
+- インポートモーダルUIを作成
+- 動画選択UI（チェックボックス、全選択/解除）を作成
+- インポートAPI（/api/videos/import）を作成
+- ダッシュボードにインポート済み動画一覧を表示
+- 変更ファイル: src/components/import/import-modal.tsx, src/components/import/video-selector.tsx
+- 変更ファイル: src/app/api/videos/import/route.ts, src/app/dashboard/dashboard-client.tsx
