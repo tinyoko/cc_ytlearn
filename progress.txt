@@ -1,0 +1,49 @@
+# YouTube Learning Companion App - 作業進捗ログ
+
+## フォーマット
+各エントリは以下の形式で記録する：
+```
+[YYYY-MM-DD HH:MM] タスクID: ステータス
+- 実施内容の説明
+- 変更したファイル一覧
+```
+
+---
+
+## 作業ログ
+
+[2024-12-07 13:45] Z001: 完了
+- Gitの初期化確認（既に初期化済み）
+- .gitignore を作成（Next.js/Prisma対応）
+- 変更ファイル: .gitignore
+
+[2024-12-07 13:45] Z002: 完了
+- progress.txt を作成
+- 作業ログのフォーマットを定義
+- 変更ファイル: progress.txt
+
+[2024-12-07 13:45] A001: 完了
+- Next.jsプロジェクトの初期セットアップを完了
+- App Router、TypeScript、Tailwind CSS v4を設定
+- 変更ファイル: package.json, tsconfig.json, tailwind.config.ts, postcss.config.mjs, next.config.ts
+- 変更ファイル: src/app/layout.tsx, src/app/page.tsx, src/app/globals.css
+
+[2024-12-07 13:50] A002: 完了
+- NextAuth.js v5（beta）をインストール
+- 認証設定ファイルを作成
+- 変更ファイル: src/lib/auth.ts, src/types/next-auth.d.ts
+
+[2024-12-07 13:50] A003: 完了
+- Google OAuth Providerを設定
+- YouTube Data APIスコープを追加
+- APIルートを作成
+- 変更ファイル: src/app/api/auth/[...nextauth]/route.ts
+
+[2024-12-07 13:55] A004-A007: 完了
+- ログインページ（/login）を作成
+- ダッシュボードページ（/dashboard）を作成
+- 認証フローとリダイレクト処理を実装
+- エラーメッセージ表示を実装
+- 変更ファイル: src/app/login/page.tsx, src/app/dashboard/page.tsx
+- 変更ファイル: src/components/auth/login-button.tsx, src/components/auth/logout-button.tsx
+- 変更ファイル: src/components/providers/session-provider.tsx

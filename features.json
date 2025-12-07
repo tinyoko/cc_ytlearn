@@ -1,0 +1,268 @@
+[
+  {
+    "id": "Z001",
+    "feature_area": "System",
+    "description": "Gitの初期化を行い、開発中のファイル差分を常に追跡できるように設定する。",
+    "status": true,
+    "priority": 1
+  },
+  {
+    "id": "Z002",
+    "feature_area": "System",
+    "description": "作業ログ（progress.txt）を定義し、イニシャライザーエージェントが作業進捗を記録する仕組みを導入する。",
+    "status": true,
+    "priority": 2
+  },
+  {
+    "id": "A001",
+    "feature_area": "Authentication",
+    "description": "Next.jsプロジェクトの初期ディレクトリ構造をセットアップする。（App Router、src/ディレクトリ構成）",
+    "status": true,
+    "priority": 3
+  },
+  {
+    "id": "A002",
+    "feature_area": "Authentication",
+    "description": "NextAuth.js v5（Auth.js）をインストールし、基本設定を行う。",
+    "status": true,
+    "priority": 4
+  },
+  {
+    "id": "A003",
+    "feature_area": "Authentication",
+    "description": "Google OAuth Providerを設定し、認証エンドポイント（/api/auth/[...nextauth]）を作成する。",
+    "status": true,
+    "priority": 5
+  },
+  {
+    "id": "A004",
+    "feature_area": "Authentication",
+    "description": "ログインページ（/login）のUIコンポーネントを作成する。（docs/ui_design_guidelines.md参照）",
+    "status": true,
+    "priority": 6
+  },
+  {
+    "id": "A005",
+    "feature_area": "Authentication",
+    "description": "ログインボタンを実装し、Google OAuthフローを開始できるようにする。",
+    "status": true,
+    "priority": 7
+  },
+  {
+    "id": "A006",
+    "feature_area": "Authentication",
+    "description": "認証成功後、ユーザーをダッシュボード（/dashboard）にリダイレクトする処理を実装する。",
+    "status": true,
+    "priority": 8
+  },
+  {
+    "id": "A007",
+    "feature_area": "Authentication",
+    "description": "認証失敗時のエラーメッセージ表示UIと処理を実装する。",
+    "status": true,
+    "priority": 9
+  },
+  {
+    "id": "B001",
+    "feature_area": "VideoImport",
+    "description": "YouTube Data APIのキー管理（環境変数）およびAPIクライアント初期化ロジックを作成する。",
+    "status": false,
+    "priority": 10
+  },
+  {
+    "id": "B002",
+    "feature_area": "VideoImport",
+    "description": "ユーザーがアップロードした動画リストを取得するためのバックエンド関数（/api/youtube/my-videos）を作成する。",
+    "status": false,
+    "priority": 11
+  },
+  {
+    "id": "B003",
+    "feature_area": "VideoImport",
+    "description": "指定されたYouTubeプレイリストIDから動画リストを取得するためのバックエンド関数（/api/youtube/playlist）を作成する。",
+    "status": false,
+    "priority": 12
+  },
+  {
+    "id": "B004",
+    "feature_area": "VideoImport",
+    "description": "動画の字幕（トランスクリプト）データを取得するAPI連携ロジックを作成する。（youtube-transcript等のライブラリを検討）",
+    "status": false,
+    "priority": 13
+  },
+  {
+    "id": "B005",
+    "feature_area": "VideoImport",
+    "description": "動画情報（ID, タイトル）とトランスクリプトを保存するためのデータベーススキーマを定義する。（docs/import_video.md参照）",
+    "status": false,
+    "priority": 14
+  },
+  {
+    "id": "B006",
+    "feature_area": "VideoImport",
+    "description": "インポート元を選択するためのモーダル/UIコンポーネントを作成する（自分の動画/プレイリストURL入力）。",
+    "status": false,
+    "priority": 15
+  },
+  {
+    "id": "B007",
+    "feature_area": "VideoImport",
+    "description": "プレイリストURL入力フィールドのバリデーション（YouTubeプレイリストURLの正規表現チェック）を実装する。",
+    "status": false,
+    "priority": 16
+  },
+  {
+    "id": "B008",
+    "feature_area": "VideoImport",
+    "description": "インポート対象の動画を選択するためのチェックボックス付きリストUIを作成する。（全選択/解除ボタン含む）",
+    "status": false,
+    "priority": 17
+  },
+  {
+    "id": "B009",
+    "feature_area": "VideoImport",
+    "description": "選択された複数の動画をバックエンドに送信し、インポート処理を開始する関数（/api/videos/import）を作成する。",
+    "status": false,
+    "priority": 18
+  },
+  {
+    "id": "D001",
+    "feature_area": "UI/Layout",
+    "description": "UIデザインガイドライン（docs/ui_design_guidelines.md）を参照し、3つの主要エリア（デッキ、動画表示、チャット）を配置する基本レイアウトを定義する。",
+    "status": false,
+    "priority": 19
+  },
+  {
+    "id": "D002",
+    "feature_area": "UI/Layout",
+    "description": "各エリアのサイズをマウスドラッグで調整可能にするレスポンシブなレイアウトロジックを実装する。（react-resizable-panels推奨）",
+    "status": false,
+    "priority": 20
+  },
+  {
+    "id": "D003",
+    "feature_area": "VideoPlayback",
+    "description": "動画表示エリアにYouTube IFrame Player APIを導入し、動画IDに基づき動画を埋め込む機能を実装する。",
+    "status": false,
+    "priority": 21
+  },
+  {
+    "id": "D004",
+    "feature_area": "VideoPlayback",
+    "description": "目次リストからタイムスタンプ（秒）を取得し、YouTube Player APIのseekTo関数を使用して正確に動画を頭出し再生するイベントハンドラを実装する。",
+    "status": false,
+    "priority": 22
+  },
+  {
+    "id": "C001",
+    "feature_area": "TranscriptAnalysis",
+    "description": "分析結果を表示するための基本UIコンポーネント（要約欄と目次リスト欄）を作成する。",
+    "status": false,
+    "priority": 23
+  },
+  {
+    "id": "C002",
+    "feature_area": "TranscriptAnalysis",
+    "description": "分析機能に必要なライブラリ（LLM API連携用）をインストールし、環境構築を行う。",
+    "status": false,
+    "priority": 24
+  },
+  {
+    "id": "C003",
+    "feature_area": "TranscriptAnalysis/Skill",
+    "description": "トランスクリプト分析専用のSkillディレクトリ（skills/TranscriptAnalyzerSkill）と 'skill.md' ファイルを作成する。",
+    "status": false,
+    "priority": 25
+  },
+  {
+    "id": "C004",
+    "feature_area": "TranscriptAnalysis/Skill",
+    "description": "skill.mdに、要約生成、タイムスタンプ抽出、目次構成に関する具体的なルールと手順を記述する。（一つのスキルに一つのタスクに焦点を当てる原則を適用）",
+    "status": false,
+    "priority": 26
+  },
+  {
+    "id": "C005",
+    "feature_area": "TranscriptAnalysis/Backend",
+    "description": "インポートされたトランスクリプトデータを受け取り、分析処理を実行するバックエンドAPIエンドポイント（/api/analysis）を作成する。",
+    "status": false,
+    "priority": 27
+  },
+  {
+    "id": "C006",
+    "feature_area": "TranscriptAnalysis/Backend",
+    "description": "APIハンドラー内で、定義したTranscriptAnalyzerSkillを利用してLLMを呼び出し、要約と目次を生成させるロジックを実装する。",
+    "status": false,
+    "priority": 28
+  },
+  {
+    "id": "C007",
+    "feature_area": "TranscriptAnalysis/Data",
+    "description": "生成された目次データ（チャプター名、タイムスタンプ）を、フロントエンドで利用しやすいJSON形式で構造化して返す処理を実装する。",
+    "status": false,
+    "priority": 29
+  },
+  {
+    "id": "C008",
+    "feature_area": "TranscriptAnalysis/PTC",
+    "description": "トランスクリプトの文字数やタイムスタンプの計算など、決定論的な処理が必要なタスクに対し、LLMの推論に頼らずPythonコード（PTC）で実行させるためのロジックを作成する。",
+    "status": false,
+    "priority": 30
+  },
+  {
+    "id": "C009",
+    "feature_area": "TranscriptAnalysis/UI",
+    "description": "UIコンポーネントに、JSON形式の目次リストをレンダリングするロジックを実装する。",
+    "status": false,
+    "priority": 31
+  },
+  {
+    "id": "C010",
+    "feature_area": "TranscriptAnalysis/UI",
+    "description": "目次内のタイムスタンプをクリックした際に、対応するYouTube動画を頭出し再生するためのフロントエンドのイベントハンドラを作成する。",
+    "status": false,
+    "priority": 32
+  },
+  {
+    "id": "D005",
+    "feature_area": "ChatIntegration/SubAgent",
+    "description": "動画の内容に関する質問に答えるための専門的なサブエージェント（Chat Agent）を定義し、関心事の分離を実現する。",
+    "status": false,
+    "priority": 33
+  },
+  {
+    "id": "D006",
+    "feature_area": "ChatIntegration/SubAgent",
+    "description": "SubAgentが動画トランスクリプト全体をコンテキストとして保持し、その範囲内での質問応答に限定するルールをskill.mdまたはエージェント設定に記述する。",
+    "status": false,
+    "priority": 34
+  },
+  {
+    "id": "D007",
+    "feature_area": "ChatIntegration/Backend",
+    "description": "ユーザーの質問と参照すべきトランスクリプトを渡し、SubAgentからの応答を処理するためのバックエンドAPIエンドポイント（/api/chat）を実装する。",
+    "status": false,
+    "priority": 35
+  },
+  {
+    "id": "D008",
+    "feature_area": "ChatIntegration/PTC",
+    "description": "チャット機能において、トランスクリプト内でのキーワード出現頻度計算など、決定論的な処理が必要なタスクをPTCによって実行させるためのロジックをChat Agent内に組み込む。",
+    "status": false,
+    "priority": 36
+  },
+  {
+    "id": "D009",
+    "feature_area": "ChatIntegration/UI",
+    "description": "チャットUI（メッセージ入力、履歴表示、ストリーミング対応）を作成し、/api/chatエンドポイントと連携させる。",
+    "status": false,
+    "priority": 37
+  },
+  {
+    "id": "D010",
+    "feature_area": "ErrorHandling",
+    "description": "YouTube Data APIからの動画取得失敗時や、トランスクリプト分析失敗時のエラーメッセージ表示を実装する。",
+    "status": false,
+    "priority": 38
+  }
+]
