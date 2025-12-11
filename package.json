@@ -26,9 +26,11 @@
   },
   "homepage": "https://github.com/tinyoko/cc_ytlearn#readme",
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.53",
     "@prisma/adapter-better-sqlite3": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "ai": "^5.0.108",
     "better-sqlite3": "^12.5.0",
     "googleapis": "^167.0.0",
     "next": "^16.0.7",
@@ -36,13 +38,18 @@
     "prisma": "^7.1.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "youtube-transcript": "^1.2.1"
+    "react-resizable-panels": "^3.0.6",
+    "youtube-captions-scraper": "^2.0.3",
+    "youtube-transcript-ts": "^1.3.0",
+    "youtubei.js": "^16.0.1",
+    "yt-transcript": "^0.0.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/youtube": "^0.1.2",
     "autoprefixer": "^10.4.22",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",

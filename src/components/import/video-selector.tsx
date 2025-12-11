@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 interface YouTubeVideo {
   videoId: string;
@@ -132,14 +133,12 @@ export function VideoSelector({
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-400 mb-4">{error}</p>
-        <button
-          onClick={fetchVideos}
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
-        >
-          再試行
-        </button>
+      <div className="py-8">
+        <ErrorMessage
+          title="動画の取得に失敗しました"
+          message={error}
+          onRetry={fetchVideos}
+        />
       </div>
     );
   }

@@ -72,6 +72,8 @@ model Video {
   duration      Int?         // 秒
   publishedAt   DateTime?
   privacyStatus String?
+  summary       String?      // 動画全体の要約
+  analyzedAt    DateTime?    // 分析実行日時
   userId        String
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   transcript    Transcript?
