@@ -42,10 +42,11 @@ async function getTranscriptFromInnertube(
 
   // CRITICAL FIX: 0秒開始の字幕も有効なデータとして扱う
   // 以前は `seg.start > 0` でフィルタリングしていたが、これは0秒開始の字幕を除外してしまう
-  // 修正: start と duration が有限数であり、duration が0より大きい場合のみ有効と判定
+  // 修正: start と duration が有限数で非負、かつ duration が0より大きい場合のみ有効と判定
   const validSegments = result.filter(
     (seg) =>
       Number.isFinite(seg.start) &&
+      seg.start >= 0 &&
       Number.isFinite(seg.duration) &&
       seg.duration > 0
   );
@@ -106,8 +107,8 @@ async function getTranscriptFromCaptionTracks(
     const start = parseTimeValue(match[1]);
     const duration = parseTimeValue(match[2]);
 
-    // データ品質チェック
-    if (!Number.isFinite(start) || !Number.isFinite(duration) || duration <= 0) {
+    // データ品質チェック（負の値を除外）
+    if (!Number.isFinite(start) || start < 0 || !Number.isFinite(duration) || duration <= 0) {
       if (process.env.NODE_ENV === 'development') {
         console.warn(
           `[Transcript Warning] Invalid XML timestamp: start="${match[1]}", dur="${match[2]}"`
@@ -116,13 +117,16 @@ async function getTranscriptFromCaptionTracks(
       continue;
     }
 
-    // HTMLエンティティをデコード
+    // HTMLエンティティをデコード（基本的なエンティティのみ、セキュリティ考慮）
+    // 注: Reactは自動的にエスケープするため、ここでデコードしても安全
     const text = match[3]
       .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&apos;/g, "'")
       .replace(/\n/g, " ")
       .trim();
 

@@ -18,23 +18,33 @@ export function TranscriptPanel({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
-  // デバッグ: 最初のセグメントの構造を確認（開発環境のみ）
-  useEffect(() => {
-    if (transcript.length > 0 && process.env.NODE_ENV === 'development') {
-      const first = transcript[0];
-      console.log('[TranscriptPanel] First segment structure:', JSON.stringify(first, null, 2));
-      console.log('[TranscriptPanel] Parsed start time:', getSegmentStartTime(first));
-      console.log('[TranscriptPanel] Parsed duration:', getSegmentDuration(first));
-    }
-  }, [transcript]);
+  // 現在再生中のセグメントを特定（二分探索で最適化）
+  const currentSegmentIndex = (() => {
+    if (transcript.length === 0) return -1;
 
-  // 現在再生中のセグメントを特定
-  const currentSegmentIndex = transcript.findIndex((segment) => {
-    const startTime = getSegmentStartTime(segment);
-    const duration = getSegmentDuration(segment);
-    const endTime = startTime + duration;
-    return currentTime >= startTime && currentTime < endTime;
-  });
+    // 二分探索でcurrentTimeに最も近いセグメントを探す
+    let left = 0;
+    let right = transcript.length - 1;
+    let result = -1;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const startTime = getSegmentStartTime(transcript[mid]);
+      const duration = getSegmentDuration(transcript[mid]);
+      const endTime = startTime + duration;
+
+      if (currentTime >= startTime && currentTime < endTime) {
+        return mid; // 完全一致
+      } else if (currentTime < startTime) {
+        right = mid - 1;
+      } else {
+        result = mid; // 候補として保存
+        left = mid + 1;
+      }
+    }
+
+    return result;
+  })();
 
   // 現在のセグメントが変わったら自動スクロール
   useEffect(() => {

@@ -220,21 +220,11 @@ export function normalizeSegment(
     }
   }
 
-  // 詳細なデバッグ: 最初のセグメント（開発環境のみ）
+  // デバッグ: 最初のセグメントのみログ出力（開発環境のみ）
   if (index === 0 && process.env.NODE_ENV === 'development') {
-    console.log(`[Transcript Debug] First segment parsed values:`);
-    console.log(`  - startValue (raw):`, startValue);
-    console.log(`  - endValue (raw):`, endValue);
-    console.log(`  - durationValue (raw):`, durationValue);
-    console.log(`  - startMs (parsed):`, startMs);
-    console.log(`  - endMs (parsed):`, endMs);
-    console.log(`  - Available keys:`, Object.keys(data));
-
     if (startMs === 0 && endMs === 0) {
-      console.error(`[Transcript Error] ❌ No valid timestamp found!`);
-      console.error(`[Transcript Error] All properties:`, JSON.stringify(data, null, 2));
-    } else {
-      console.log(`[Transcript Success] ✓ Timestamps found: start=${startMs}ms, end=${endMs}ms`);
+      console.error(`[Transcript Error] ❌ No valid timestamp found in first segment`);
+      console.error(`[Transcript Error] Available keys:`, Object.keys(data));
     }
   }
 
