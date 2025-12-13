@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, memo } from "react";
 import {
   Panel,
   PanelGroup,
@@ -125,15 +125,15 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
 
       {/* メインコンテンツ */}
       <main className="flex-1 min-h-0">
-        <PanelGroup direction="horizontal" className="h-full">
+        <PanelGroup direction="horizontal" className="h-full" autoSaveId="learn-layout-horizontal">
           {/* 左パネル: 目次 */}
           <Panel defaultSize={20} minSize={15} maxSize={35}>
             <div className="h-full flex flex-col bg-slate-800 border-r border-slate-700">
-              <div className="flex border-b border-slate-700">
-                <div className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
+              <header className="flex border-b border-slate-700">
+                <h2 className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
                   目次
-                </div>
-              </div>
+                </h2>
+              </header>
               <div className="flex-1 min-h-0 overflow-y-auto">
                 <ChapterListWithAnalyze
                   chapters={chapters}
@@ -148,11 +148,14 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
             </div>
           </Panel>
 
-          <PanelResizeHandle className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize" />
+          <PanelResizeHandle
+            className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize"
+            aria-label="目次パネルのリサイズハンドル"
+          />
 
           {/* 中央パネル: 動画プレーヤーと字幕 */}
           <Panel defaultSize={55} minSize={40}>
-            <PanelGroup direction="vertical" className="h-full">
+            <PanelGroup direction="vertical" className="h-full" autoSaveId="learn-layout-vertical">
               {/* 動画プレーヤー */}
               <Panel defaultSize={60} minSize={30}>
                 <div className="h-full flex flex-col bg-slate-900">
@@ -166,16 +169,19 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
                 </div>
               </Panel>
 
-              <PanelResizeHandle className="h-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-row-resize" />
+              <PanelResizeHandle
+                className="h-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-row-resize"
+                aria-label="動画と字幕の境界リサイズハンドル"
+              />
 
               {/* 字幕 */}
               <Panel defaultSize={40} minSize={20}>
                 <div className="h-full flex flex-col bg-slate-800 border-t border-slate-700">
-                  <div className="flex border-b border-slate-700">
-                    <div className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
+                  <header className="flex border-b border-slate-700">
+                    <h2 className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
                       字幕
-                    </div>
-                  </div>
+                    </h2>
+                  </header>
                   <div className="flex-1 min-h-0">
                     <TranscriptPanel
                       transcript={transcript}
@@ -188,7 +194,10 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
             </PanelGroup>
           </Panel>
 
-          <PanelResizeHandle className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize" />
+          <PanelResizeHandle
+            className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize"
+            aria-label="チャットパネルのリサイズハンドル"
+          />
 
           {/* 右パネル: チャット */}
           <Panel defaultSize={25} minSize={20} maxSize={40}>
@@ -206,8 +215,8 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
   );
 }
 
-// 分析ボタン付きチャプターリスト
-function ChapterListWithAnalyze({
+// 分析ボタン付きチャプターリスト（メモ化してパフォーマンス向上）
+const ChapterListWithAnalyze = memo(function ChapterListWithAnalyze({
   chapters,
   currentTime,
   onSeek,
@@ -290,4 +299,4 @@ function ChapterListWithAnalyze({
       />
     </div>
   );
-}
+});
