@@ -61,7 +61,7 @@ async function getTranscriptFromInnertube(
     );
   }
 
-  return result;
+  return validSegments;
 }
 
 // caption_tracksのbase_urlから直接XMLをフェッチして字幕を取得（フォールバック）
