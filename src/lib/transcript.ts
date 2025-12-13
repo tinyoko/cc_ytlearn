@@ -33,11 +33,14 @@ async function getTranscriptFromInnertube(
     throw new Error("No transcript segments found");
   }
 
+  // デバッグ: 最初のセグメントの構造を確認
+  if (segments.length > 0) {
+    console.log(`[Transcript] First segment structure:`, JSON.stringify(segments[0], null, 2));
+  }
+
   return segments
     .filter(
-      (
-        segment: unknown
-      ): segment is { snippet: { text: string; start_ms: string; end_ms: string } } => {
+      (segment: unknown): segment is Record<string, any> => {
         return (
           segment !== null &&
           typeof segment === "object" &&
@@ -45,13 +48,26 @@ async function getTranscriptFromInnertube(
         );
       }
     )
-    .map((segment) => {
-      const startMs = parseInt(segment.snippet.start_ms, 10) || 0;
-      const endMs = parseInt(segment.snippet.end_ms, 10) || 0;
+    .map((segment, index) => {
+      const snippet = segment.snippet as Record<string, any>;
+
+      // youtubei.jsのバージョンや取得方法により、プロパティ名が異なる可能性がある
+      // start_ms/end_ms (snake_case) または startMs/endMs (camelCase) を試す
+      const startValue = snippet.start_ms ?? snippet.startMs ?? snippet.start_time_ms ?? snippet.startTimeMs ?? 0;
+      const endValue = snippet.end_ms ?? snippet.endMs ?? snippet.end_time_ms ?? snippet.endTimeMs ?? 0;
+
+      const startMs = typeof startValue === 'number' ? startValue : parseFloat(startValue) || 0;
+      const endMs = typeof endValue === 'number' ? endValue : parseFloat(endValue) || 0;
+
+      // 警告: タイムスタンプが取得できていない場合
+      if (index === 0 && startMs === 0 && endMs === 0) {
+        console.warn(`[Transcript] Warning: No timestamp data found. Available keys:`, Object.keys(snippet));
+      }
+
       return {
-        text: segment.snippet.text || "",
+        text: snippet.text || "",
         start: startMs / 1000,
-        duration: (endMs - startMs) / 1000,
+        duration: Math.max(0, (endMs - startMs) / 1000),
       };
     });
 }
