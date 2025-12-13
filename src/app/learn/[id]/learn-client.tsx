@@ -126,35 +126,66 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
       {/* メインコンテンツ */}
       <main className="flex-1 min-h-0">
         <PanelGroup direction="horizontal" className="h-full">
-          {/* 左パネル: 目次/トランスクリプト */}
+          {/* 左パネル: 目次 */}
           <Panel defaultSize={20} minSize={15} maxSize={35}>
             <div className="h-full flex flex-col bg-slate-800 border-r border-slate-700">
-              <LeftPanelTabs
-                videoId={video.id}
-                chapters={chapters}
-                transcript={transcript}
-                currentTime={currentTime}
-                onSeek={handleSeek}
-                onAnalyze={handleAnalyze}
-                isAnalyzing={isAnalyzing}
-                analyzeError={analyzeError}
-              />
+              <div className="flex border-b border-slate-700">
+                <div className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
+                  目次
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <ChapterListWithAnalyze
+                  chapters={chapters}
+                  currentTime={currentTime}
+                  onSeek={handleSeek}
+                  onAnalyze={handleAnalyze}
+                  isAnalyzing={isAnalyzing}
+                  hasTranscript={transcript.length > 0}
+                  error={analyzeError}
+                />
+              </div>
             </div>
           </Panel>
 
           <PanelResizeHandle className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize" />
 
-          {/* 中央パネル: 動画プレーヤー */}
+          {/* 中央パネル: 動画プレーヤーと字幕 */}
           <Panel defaultSize={55} minSize={40}>
-            <div className="h-full flex flex-col bg-slate-900">
-              <div className="flex-1 min-h-0 p-4">
-                <YouTubePlayer
-                  ref={playerRef}
-                  videoId={video.videoId}
-                  onTimeUpdate={handleTimeUpdate}
-                />
-              </div>
-            </div>
+            <PanelGroup direction="vertical" className="h-full">
+              {/* 動画プレーヤー */}
+              <Panel defaultSize={60} minSize={30}>
+                <div className="h-full flex flex-col bg-slate-900">
+                  <div className="flex-1 min-h-0 p-4">
+                    <YouTubePlayer
+                      ref={playerRef}
+                      videoId={video.videoId}
+                      onTimeUpdate={handleTimeUpdate}
+                    />
+                  </div>
+                </div>
+              </Panel>
+
+              <PanelResizeHandle className="h-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-row-resize" />
+
+              {/* 字幕 */}
+              <Panel defaultSize={40} minSize={20}>
+                <div className="h-full flex flex-col bg-slate-800 border-t border-slate-700">
+                  <div className="flex border-b border-slate-700">
+                    <div className="flex-1 px-4 py-3 text-sm font-medium text-blue-400 border-b-2 border-blue-400">
+                      字幕
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <TranscriptPanel
+                      transcript={transcript}
+                      currentTime={currentTime}
+                      onSeek={handleSeek}
+                    />
+                  </div>
+                </div>
+              </Panel>
+            </PanelGroup>
           </Panel>
 
           <PanelResizeHandle className="w-1 bg-slate-700 hover:bg-blue-500 transition-colors cursor-col-resize" />
@@ -172,80 +203,6 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
         </PanelGroup>
       </main>
     </div>
-  );
-}
-
-// 左パネルのタブコンポーネント
-function LeftPanelTabs({
-  videoId,
-  chapters,
-  transcript,
-  currentTime,
-  onSeek,
-  onAnalyze,
-  isAnalyzing,
-  analyzeError,
-}: {
-  videoId: string;
-  chapters: Chapter[];
-  transcript: TranscriptSegment[];
-  currentTime: number;
-  onSeek: (time: number) => void;
-  onAnalyze: () => void;
-  isAnalyzing: boolean;
-  analyzeError: string | null;
-}) {
-  const [activeTab, setActiveTab] = useState<"chapters" | "transcript">(
-    chapters.length > 0 ? "chapters" : "transcript"
-  );
-
-  return (
-    <>
-      {/* タブヘッダー */}
-      <div className="flex border-b border-slate-700">
-        <button
-          onClick={() => setActiveTab("chapters")}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            activeTab === "chapters"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          目次
-        </button>
-        <button
-          onClick={() => setActiveTab("transcript")}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            activeTab === "transcript"
-              ? "text-blue-400 border-b-2 border-blue-400"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          字幕
-        </button>
-      </div>
-
-      {/* タブコンテンツ */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {activeTab === "chapters" ? (
-          <ChapterListWithAnalyze
-            chapters={chapters}
-            currentTime={currentTime}
-            onSeek={onSeek}
-            onAnalyze={onAnalyze}
-            isAnalyzing={isAnalyzing}
-            hasTranscript={transcript.length > 0}
-            error={analyzeError}
-          />
-        ) : (
-          <TranscriptPanel
-            transcript={transcript}
-            currentTime={currentTime}
-            onSeek={onSeek}
-          />
-        )}
-      </div>
-    </>
   );
 }
 
