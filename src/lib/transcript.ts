@@ -15,14 +15,40 @@ interface YoutubeTranscriptSnippet {
   startMs?: number | string;
   start_time_ms?: number | string;
   startTimeMs?: number | string;
+  startOffsetMs?: number | string;
+  start_offset_ms?: number | string;
   end_ms?: number | string;
   endMs?: number | string;
   end_time_ms?: number | string;
   endTimeMs?: number | string;
+  endOffsetMs?: number | string;
+  end_offset_ms?: number | string;
+  // 秒単位の可能性もあるため追加
+  start?: number | string;
+  end?: number | string;
+  duration?: number | string;
+  dur?: number | string;
+  // その他すべてのプロパティを受け入れる
+  [key: string]: unknown;
 }
 
 interface YoutubeTranscriptSegment {
   snippet?: YoutubeTranscriptSnippet;
+  // snippetがない場合、直接プロパティを持つ可能性
+  start_ms?: number | string;
+  startMs?: number | string;
+  startOffsetMs?: number | string;
+  start_offset_ms?: number | string;
+  end_ms?: number | string;
+  endMs?: number | string;
+  endOffsetMs?: number | string;
+  end_offset_ms?: number | string;
+  start?: number | string;
+  end?: number | string;
+  duration?: number | string;
+  dur?: number | string;
+  text?: string;
+  [key: string]: unknown;
 }
 
 // Innertubeインスタンスをキャッシュ
@@ -65,41 +91,90 @@ async function getTranscriptFromInnertube(
     throw new Error("No transcript segments found");
   }
 
-  // デバッグ: 最初のセグメントの構造を確認
-  if (process.env.NODE_ENV === 'development' && segments.length > 0) {
+  // デバッグ: 最初のセグメントの構造を確認（常に表示）
+  if (segments.length > 0) {
     console.error(`[Transcript Debug] First segment full structure:`, JSON.stringify(segments[0], null, 2));
   }
 
   const result = (segments as YoutubeTranscriptSegment[])
-    .filter((segment): segment is YoutubeTranscriptSegment => {
-      return (
-        segment !== null &&
-        typeof segment === "object" &&
-        "snippet" in segment &&
-        segment.snippet !== null &&
-        typeof segment.snippet === "object"
-      );
-    })
     .map((segment, index) => {
-      const snippet = segment.snippet!;
+      // snippetがあるかチェック
+      const data = segment.snippet || segment;
 
-      // すべての可能なプロパティ名を試す
-      const startValue = snippet.start_ms ?? snippet.startMs ?? snippet.start_time_ms ?? snippet.startTimeMs;
-      const endValue = snippet.end_ms ?? snippet.endMs ?? snippet.end_time_ms ?? snippet.endTimeMs;
+      if (!data || typeof data !== "object") {
+        console.error(`[Transcript Error] Segment ${index} is not an object:`, data);
+        return null;
+      }
 
-      const startMs = parseTimeValue(startValue);
-      const endMs = parseTimeValue(endValue);
+      // すべての可能なプロパティ名を試す（優先順位順）
+      const startValue =
+        data.startOffsetMs ??
+        data.start_offset_ms ??
+        data.start_ms ??
+        data.startMs ??
+        data.start_time_ms ??
+        data.startTimeMs ??
+        data.start;
 
-      // 詳細な警告: タイムスタンプが取得できていない場合
-      if (index === 0) {
-        if (startMs === 0 && endMs === 0) {
-          console.error(`[Transcript Error] No timestamp data found in first segment!`);
-          console.error(`[Transcript Error] Available snippet keys:`, Object.keys(snippet));
-          console.error(`[Transcript Error] Snippet values:`, JSON.stringify(snippet, null, 2));
-        } else {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[Transcript Success] First segment: start=${startMs}ms, end=${endMs}ms, text="${snippet.text?.substring(0, 30)}..."`);
+      const endValue =
+        data.endOffsetMs ??
+        data.end_offset_ms ??
+        data.end_ms ??
+        data.endMs ??
+        data.end_time_ms ??
+        data.endTimeMs ??
+        data.end;
+
+      const durationValue = data.duration ?? data.dur;
+
+      let startMs = parseTimeValue(startValue);
+      let endMs = parseTimeValue(endValue);
+
+      // startとendが秒単位の可能性をチェック（値が小さい場合）
+      if (startMs > 0 && startMs < 100000 && startValue !== undefined) {
+        const asSeconds = parseFloat(String(startValue));
+        if (asSeconds < 10000) {
+          // おそらく秒単位なのでミリ秒に変換
+          startMs = asSeconds * 1000;
+        }
+      }
+
+      if (endMs > 0 && endMs < 100000 && endValue !== undefined) {
+        const asSeconds = parseFloat(String(endValue));
+        if (asSeconds < 10000) {
+          endMs = asSeconds * 1000;
+        }
+      }
+
+      // durationから終了時刻を計算する必要がある場合
+      if (durationValue !== undefined && (endMs === 0 || endValue === undefined)) {
+        const durationMs = parseTimeValue(durationValue);
+        // durationも秒単位の可能性をチェック
+        if (durationMs > 0 && durationMs < 100000) {
+          const asSeconds = parseFloat(String(durationValue));
+          if (asSeconds < 10000) {
+            endMs = startMs + (asSeconds * 1000);
+          } else {
+            endMs = startMs + durationMs;
           }
+        }
+      }
+
+      // 詳細なデバッグ: 最初のセグメント
+      if (index === 0) {
+        console.error(`[Transcript Debug] First segment parsed values:`);
+        console.error(`  - startValue (raw):`, startValue);
+        console.error(`  - endValue (raw):`, endValue);
+        console.error(`  - durationValue (raw):`, durationValue);
+        console.error(`  - startMs (parsed):`, startMs);
+        console.error(`  - endMs (parsed):`, endMs);
+        console.error(`  - Available keys:`, Object.keys(data));
+
+        if (startMs === 0 && endMs === 0) {
+          console.error(`[Transcript Error] ❌ No valid timestamp found!`);
+          console.error(`[Transcript Error] All properties:`, JSON.stringify(data, null, 2));
+        } else {
+          console.error(`[Transcript Success] ✓ Timestamps found: start=${startMs}ms, end=${endMs}ms`);
         }
       }
 
@@ -108,12 +183,15 @@ async function getTranscriptFromInnertube(
         console.error(`[Transcript Warning] Invalid timestamp at segment ${index}: start=${startValue}, end=${endValue}`);
       }
 
+      const text = (data.text || segment.text || "") as string;
+
       return {
-        text: snippet.text || "",
+        text: text,
         start: startMs / 1000,
         duration: Math.max(0, (endMs - startMs) / 1000),
       };
-    });
+    })
+    .filter((seg): seg is TranscriptSegment => seg !== null);
 
   // 最終結果の検証
   const validSegments = result.filter(seg => seg.start > 0 || seg.duration > 0);
