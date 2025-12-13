@@ -1,113 +1,13 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-
-interface TranscriptSegment {
-  text: string;
-  start: number;
-  duration: number;
-  // DB内のデータが正規化されていない場合に備えて、様々なプロパティ名に対応
-  startOffsetMs?: number;
-  start_offset_ms?: number;
-  start_ms?: number;
-  startMs?: number;
-  startTimeMs?: number;
-  start_time_ms?: number;
-  endOffsetMs?: number;
-  end_offset_ms?: number;
-  end_ms?: number;
-  endMs?: number;
-  endTimeMs?: number;
-  end_time_ms?: number;
-  dur?: number;
-  [key: string]: unknown;
-}
+import type { TranscriptSegment } from "@/types/transcript";
+import { getSegmentStartTime, getSegmentDuration, formatTimestamp } from "@/lib/transcript-utils";
 
 interface TranscriptPanelProps {
   transcript: TranscriptSegment[];
   currentTime: number;
   onSeek: (time: number) => void;
-}
-
-// 安全に時間値をパースする関数
-function parseTimeValue(value: number | string | undefined | null): number {
-  if (value === undefined || value === null) return 0;
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : 0;
-  }
-  const parsed = parseFloat(String(value));
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-// セグメントから開始時刻を抽出（複数のプロパティ名に対応）
-function getSegmentStartTime(segment: TranscriptSegment): number {
-  // まず正規化された `start` プロパティをチェック
-  if (segment.start !== undefined && segment.start > 0) {
-    return segment.start;
-  }
-
-  // 正規化されていない場合、様々なプロパティ名を試す
-  const startValue =
-    segment.startOffsetMs ??
-    segment.start_offset_ms ??
-    segment.start_ms ??
-    segment.startMs ??
-    segment.startTimeMs ??
-    segment.start_time_ms ??
-    segment.start;
-
-  if (startValue === undefined) return 0;
-
-  let startMs = parseTimeValue(startValue);
-
-  // ミリ秒単位の場合は秒に変換（値が大きい場合）
-  if (startMs > 10000) {
-    return startMs / 1000;
-  }
-
-  // すでに秒単位の場合はそのまま返す
-  return startMs;
-}
-
-// セグメントから表示時間を計算（複数のプロパティ名に対応）
-function getSegmentDuration(segment: TranscriptSegment): number {
-  // まず正規化された `duration` プロパティをチェック
-  if (segment.duration !== undefined && segment.duration > 0) {
-    return segment.duration;
-  }
-
-  // 終了時刻から計算
-  const startTime = getSegmentStartTime(segment);
-
-  const endValue =
-    segment.endOffsetMs ??
-    segment.end_offset_ms ??
-    segment.end_ms ??
-    segment.endMs ??
-    segment.endTimeMs ??
-    segment.end_time_ms;
-
-  if (endValue !== undefined) {
-    let endMs = parseTimeValue(endValue);
-    let endTime = endMs > 10000 ? endMs / 1000 : endMs;
-    return Math.max(0, endTime - startTime);
-  }
-
-  // durationプロパティから取得
-  const durValue = segment.dur ?? segment.duration;
-  if (durValue !== undefined) {
-    let dur = parseTimeValue(durValue);
-    return dur > 10000 ? dur / 1000 : dur;
-  }
-
-  return 0;
-}
-
-// 秒数を MM:SS 形式に変換
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 export function TranscriptPanel({
@@ -118,9 +18,9 @@ export function TranscriptPanel({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
-  // デバッグ: 最初のセグメントの構造を確認
+  // デバッグ: 最初のセグメントの構造を確認（開発環境のみ）
   useEffect(() => {
-    if (transcript.length > 0) {
+    if (transcript.length > 0 && process.env.NODE_ENV === 'development') {
       const first = transcript[0];
       console.log('[TranscriptPanel] First segment structure:', JSON.stringify(first, null, 2));
       console.log('[TranscriptPanel] Parsed start time:', getSegmentStartTime(first));
@@ -158,15 +58,34 @@ export function TranscriptPanel({
     }
   }, [currentSegmentIndex]);
 
+  // 空状態UI（字幕がない場合）
   if (transcript.length === 0) {
     return (
-      <div className="p-4 text-center text-slate-400">
-        <p className="text-sm">字幕データがありません</p>
-        <p className="text-xs mt-2">
-          この動画には字幕が含まれていないか、
-          <br />
-          字幕の取得に失敗しました
-        </p>
+      <div className="h-full flex items-center justify-center p-8">
+        <div className="text-center text-slate-400 max-w-md">
+          <svg
+            className="mx-auto h-12 w-12 mb-4 text-slate-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+            />
+          </svg>
+          <h3 className="text-lg font-medium text-slate-300 mb-2">
+            字幕データがありません
+          </h3>
+          <p className="text-sm">
+            この動画には字幕が含まれていないか、
+            <br />
+            字幕の取得に失敗しました
+          </p>
+        </div>
       </div>
     );
   }
@@ -193,7 +112,7 @@ export function TranscriptPanel({
                     isActive ? "text-blue-400" : "text-slate-500"
                   }`}
                 >
-                  {formatTime(startTime)}
+                  {formatTimestamp(startTime)}
                 </span>
                 <p
                   className={`text-sm leading-relaxed ${

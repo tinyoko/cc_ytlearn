@@ -1,55 +1,6 @@
 import { Innertube } from "youtubei.js";
-
-// トランスクリプトセグメントの型定義
-export interface TranscriptSegment {
-  text: string;
-  start: number; // 開始時間（秒）
-  duration: number; // 表示時間（秒）
-}
-
-// youtubei.jsのトランスクリプトセグメントの型定義
-interface YoutubeTranscriptSnippet {
-  text?: string;
-  // タイムスタンプのプロパティ（複数の命名規則に対応）
-  start_ms?: number | string;
-  startMs?: number | string;
-  start_time_ms?: number | string;
-  startTimeMs?: number | string;
-  startOffsetMs?: number | string;
-  start_offset_ms?: number | string;
-  end_ms?: number | string;
-  endMs?: number | string;
-  end_time_ms?: number | string;
-  endTimeMs?: number | string;
-  endOffsetMs?: number | string;
-  end_offset_ms?: number | string;
-  // 秒単位の可能性もあるため追加
-  start?: number | string;
-  end?: number | string;
-  duration?: number | string;
-  dur?: number | string;
-  // その他すべてのプロパティを受け入れる
-  [key: string]: unknown;
-}
-
-interface YoutubeTranscriptSegment {
-  snippet?: YoutubeTranscriptSnippet;
-  // snippetがない場合、直接プロパティを持つ可能性
-  start_ms?: number | string;
-  startMs?: number | string;
-  startOffsetMs?: number | string;
-  start_offset_ms?: number | string;
-  end_ms?: number | string;
-  endMs?: number | string;
-  endOffsetMs?: number | string;
-  end_offset_ms?: number | string;
-  start?: number | string;
-  end?: number | string;
-  duration?: number | string;
-  dur?: number | string;
-  text?: string;
-  [key: string]: unknown;
-}
+import type { TranscriptSegment, RawTranscriptSegment } from "@/types/transcript";
+import { parseTimeValue, normalizeSegment, transcriptToText, formatTimestamp } from "@/lib/transcript-utils";
 
 // Innertubeインスタンスをキャッシュ
 let innertubeInstance: Innertube | null = null;
@@ -59,20 +10,6 @@ async function getInnertube(): Promise<Innertube> {
     innertubeInstance = await Innertube.create();
   }
   return innertubeInstance;
-}
-
-// 数値を安全にパースする関数
-function parseTimeValue(value: number | string | undefined | null): number {
-  if (value === undefined || value === null) {
-    return 0;
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  const parsed = parseFloat(String(value));
-  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 // Innertube経由で字幕を取得（プライマリ）
@@ -91,114 +28,36 @@ async function getTranscriptFromInnertube(
     throw new Error("No transcript segments found");
   }
 
-  // デバッグ: 最初のセグメントの構造を確認（常に表示）
-  if (segments.length > 0) {
-    console.error(`[Transcript Debug] First segment full structure:`, JSON.stringify(segments[0], null, 2));
+  // デバッグ: 最初のセグメントの構造を確認（開発環境のみ）
+  if (segments.length > 0 && process.env.NODE_ENV === 'development') {
+    console.log(
+      `[Transcript Debug] First segment full structure:`,
+      JSON.stringify(segments[0], null, 2)
+    );
   }
 
-  const result = (segments as YoutubeTranscriptSegment[])
-    .map((segment, index) => {
-      // snippetがあるかチェック
-      const data = segment.snippet || segment;
-
-      if (!data || typeof data !== "object") {
-        console.error(`[Transcript Error] Segment ${index} is not an object:`, data);
-        return null;
-      }
-
-      // すべての可能なプロパティ名を試す（優先順位順）
-      const startValue =
-        data.startOffsetMs ??
-        data.start_offset_ms ??
-        data.start_ms ??
-        data.startMs ??
-        data.start_time_ms ??
-        data.startTimeMs ??
-        data.start;
-
-      const endValue =
-        data.endOffsetMs ??
-        data.end_offset_ms ??
-        data.end_ms ??
-        data.endMs ??
-        data.end_time_ms ??
-        data.endTimeMs ??
-        data.end;
-
-      const durationValue = data.duration ?? data.dur;
-
-      let startMs = parseTimeValue(startValue);
-      let endMs = parseTimeValue(endValue);
-
-      // startとendが秒単位の可能性をチェック（値が小さい場合）
-      if (startMs > 0 && startMs < 100000 && startValue !== undefined) {
-        const asSeconds = parseFloat(String(startValue));
-        if (asSeconds < 10000) {
-          // おそらく秒単位なのでミリ秒に変換
-          startMs = asSeconds * 1000;
-        }
-      }
-
-      if (endMs > 0 && endMs < 100000 && endValue !== undefined) {
-        const asSeconds = parseFloat(String(endValue));
-        if (asSeconds < 10000) {
-          endMs = asSeconds * 1000;
-        }
-      }
-
-      // durationから終了時刻を計算する必要がある場合
-      if (durationValue !== undefined && (endMs === 0 || endValue === undefined)) {
-        const durationMs = parseTimeValue(durationValue);
-        // durationも秒単位の可能性をチェック
-        if (durationMs > 0 && durationMs < 100000) {
-          const asSeconds = parseFloat(String(durationValue));
-          if (asSeconds < 10000) {
-            endMs = startMs + (asSeconds * 1000);
-          } else {
-            endMs = startMs + durationMs;
-          }
-        }
-      }
-
-      // 詳細なデバッグ: 最初のセグメント
-      if (index === 0) {
-        console.error(`[Transcript Debug] First segment parsed values:`);
-        console.error(`  - startValue (raw):`, startValue);
-        console.error(`  - endValue (raw):`, endValue);
-        console.error(`  - durationValue (raw):`, durationValue);
-        console.error(`  - startMs (parsed):`, startMs);
-        console.error(`  - endMs (parsed):`, endMs);
-        console.error(`  - Available keys:`, Object.keys(data));
-
-        if (startMs === 0 && endMs === 0) {
-          console.error(`[Transcript Error] ❌ No valid timestamp found!`);
-          console.error(`[Transcript Error] All properties:`, JSON.stringify(data, null, 2));
-        } else {
-          console.error(`[Transcript Success] ✓ Timestamps found: start=${startMs}ms, end=${endMs}ms`);
-        }
-      }
-
-      // データ品質チェック
-      if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
-        console.error(`[Transcript Warning] Invalid timestamp at segment ${index}: start=${startValue}, end=${endValue}`);
-      }
-
-      const text = (data.text || segment.text || "") as string;
-
-      return {
-        text: text,
-        start: startMs / 1000,
-        duration: Math.max(0, (endMs - startMs) / 1000),
-      };
-    })
+  const result = (segments as RawTranscriptSegment[])
+    .map((segment, index) => normalizeSegment(segment, index))
     .filter((seg): seg is TranscriptSegment => seg !== null);
 
-  // 最終結果の検証
-  const validSegments = result.filter(seg => seg.start > 0 || seg.duration > 0);
+  // CRITICAL FIX: 0秒開始の字幕も有効なデータとして扱う
+  // 以前は `seg.start > 0` でフィルタリングしていたが、これは0秒開始の字幕を除外してしまう
+  // 修正: start と duration が有限数であり、duration が0より大きい場合のみ有効と判定
+  const validSegments = result.filter(
+    (seg) =>
+      Number.isFinite(seg.start) &&
+      Number.isFinite(seg.duration) &&
+      seg.duration > 0
+  );
+
   if (validSegments.length === 0 && result.length > 0) {
-    console.error(`[Transcript Error] All ${result.length} segments have zero timestamps!`);
-  } else {
-    console.log(`[Transcript] Processed ${result.length} segments, ${validSegments.length} with valid timestamps`);
+    console.error(
+      `[Transcript Error] All ${result.length} segments have invalid timestamps!`
+    );
+  } else if (process.env.NODE_ENV === 'development') {
+    console.log(
+      `[Transcript] Processed ${result.length} segments, ${validSegments.length} valid`
+    );
   }
 
   return result;
@@ -225,7 +84,9 @@ async function getTranscriptFromCaptionTracks(
   }
 
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[Transcript] Using caption track: ${track.name?.text || 'Unknown'} (${track.language_code || 'unknown'})`);
+    console.log(
+      `[Transcript] Using caption track: ${track.name?.text || 'Unknown'} (${track.language_code || 'unknown'})`
+    );
   }
 
   // XMLフォーマットでフェッチ（json3より信頼性が高い場合がある）
@@ -246,8 +107,12 @@ async function getTranscriptFromCaptionTracks(
     const duration = parseTimeValue(match[2]);
 
     // データ品質チェック
-    if (!Number.isFinite(start) || !Number.isFinite(duration)) {
-      console.error(`[Transcript Warning] Invalid XML timestamp: start="${match[1]}", dur="${match[2]}"`);
+    if (!Number.isFinite(start) || !Number.isFinite(duration) || duration <= 0) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `[Transcript Warning] Invalid XML timestamp: start="${match[1]}", dur="${match[2]}"`
+        );
+      }
       continue;
     }
 
@@ -277,51 +142,51 @@ async function getTranscriptFromCaptionTracks(
 export async function getTranscript(
   videoId: string
 ): Promise<TranscriptSegment[]> {
-  console.log(`[Transcript] Starting transcript fetch for video: ${videoId}`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[Transcript] Starting transcript fetch for video: ${videoId}`);
+  }
 
   // 1. Innertube getTranscript()を試す
   try {
-    console.log(`[Transcript] Trying Innertube getTranscript...`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Transcript] Trying Innertube getTranscript...`);
+    }
     const segments = await getTranscriptFromInnertube(videoId);
     if (segments.length > 0) {
-      console.log(`[Transcript] ✓ Success via Innertube: ${segments.length} segments`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Transcript] ✓ Success via Innertube: ${segments.length} segments`);
+      }
       return segments;
     }
   } catch (error) {
-    console.error(`[Transcript] ✗ Innertube getTranscript failed:`, error instanceof Error ? error.message : error);
+    console.error(
+      `[Transcript] ✗ Innertube getTranscript failed:`,
+      error instanceof Error ? error.message : error
+    );
   }
 
   // 2. caption_tracksのbase_urlから直接取得を試す
   try {
-    console.log(`[Transcript] Trying caption_tracks fallback...`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Transcript] Trying caption_tracks fallback...`);
+    }
     const segments = await getTranscriptFromCaptionTracks(videoId);
     if (segments.length > 0) {
-      console.log(`[Transcript] ✓ Success via caption_tracks: ${segments.length} segments`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Transcript] ✓ Success via caption_tracks: ${segments.length} segments`);
+      }
       return segments;
     }
   } catch (error) {
-    console.error(`[Transcript] ✗ caption_tracks fallback failed:`, error instanceof Error ? error.message : error);
+    console.error(
+      `[Transcript] ✗ caption_tracks fallback failed:`,
+      error instanceof Error ? error.message : error
+    );
   }
 
   console.error(`[Transcript] ✗✗ All methods failed for ${videoId}`);
   return [];
 }
 
-// トランスクリプトを全文テキストに変換
-export function transcriptToText(segments: TranscriptSegment[]): string {
-  return segments.map((s) => s.text).join(" ");
-}
-
-// タイムスタンプをフォーマット（秒 -> MM:SS または HH:MM:SS）
-export function formatTimestamp(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// Re-export utility functions for backward compatibility
+export { transcriptToText, formatTimestamp };
