@@ -1,0 +1,69 @@
+name: Antigravity (Gemini) Assistant
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  antigravity:
+    if: contains(github.event.comment.body, '@agy')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Antigravity (Gemini)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          # 1. 必要なツールのインストール
+          npm install -g @google/generative-ai
+          
+          # 2. Geminiに指示を出し、コードを修正させるスクリプト（インライン作成）
+          cat << 'EOF' > antigravity_task.js
+          const { GoogleGenerativeAI } = require("@google/generative-ai");
+          const fs = require('fs');
+          
+          async function run() {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+            
+            // 修正経緯ドキュメントを読み込ませる
+            const incidentReport = fs.readFileSync('docs/incident_reports.md', 'utf8');
+            const projectRules = fs.readFileSync('CLAUDE.md', 'utf8');
+            
+            const prompt = `
+            あなたはAntigravity。以下のプロジェクトルールと過去の修正経緯に基づき作業してください。
+            
+            【プロジェクトルール】
+            ${projectRules}
+            
+            【過去の修正経緯】
+            ${incidentReport}
+            
+            【今回の指示】
+            ${process.env.COMMENT_BODY}
+            `;
+            
+            const result = await model.generateContent(prompt);
+            console.log(result.response.text());
+          }
+          run();
+          EOF
+
+          # 3. スクリプトの実行
+          node antigravity_task.js
