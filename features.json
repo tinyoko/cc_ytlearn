@@ -1,268 +1,160 @@
-[
-  {
-    "id": "Z001",
-    "feature_area": "System",
-    "description": "Gitの初期化を行い、開発中のファイル差分を常に追跡できるように設定する。",
-    "status": true,
-    "priority": 1
-  },
-  {
-    "id": "Z002",
-    "feature_area": "System",
-    "description": "作業ログ（progress.txt）を定義し、イニシャライザーエージェントが作業進捗を記録する仕組みを導入する。",
-    "status": true,
-    "priority": 2
-  },
-  {
-    "id": "A001",
-    "feature_area": "Authentication",
-    "description": "Next.jsプロジェクトの初期ディレクトリ構造をセットアップする。（App Router、src/ディレクトリ構成）",
-    "status": true,
-    "priority": 3
-  },
-  {
-    "id": "A002",
-    "feature_area": "Authentication",
-    "description": "NextAuth.js v5（Auth.js）をインストールし、基本設定を行う。",
-    "status": true,
-    "priority": 4
-  },
-  {
-    "id": "A003",
-    "feature_area": "Authentication",
-    "description": "Google OAuth Providerを設定し、認証エンドポイント（/api/auth/[...nextauth]）を作成する。",
-    "status": true,
-    "priority": 5
-  },
-  {
-    "id": "A004",
-    "feature_area": "Authentication",
-    "description": "ログインページ（/login）のUIコンポーネントを作成する。（docs/ui_design_guidelines.md参照）",
-    "status": true,
-    "priority": 6
-  },
-  {
-    "id": "A005",
-    "feature_area": "Authentication",
-    "description": "ログインボタンを実装し、Google OAuthフローを開始できるようにする。",
-    "status": true,
-    "priority": 7
-  },
-  {
-    "id": "A006",
-    "feature_area": "Authentication",
-    "description": "認証成功後、ユーザーをダッシュボード（/dashboard）にリダイレクトする処理を実装する。",
-    "status": true,
-    "priority": 8
-  },
-  {
-    "id": "A007",
-    "feature_area": "Authentication",
-    "description": "認証失敗時のエラーメッセージ表示UIと処理を実装する。",
-    "status": true,
-    "priority": 9
-  },
-  {
-    "id": "B001",
-    "feature_area": "VideoImport",
-    "description": "YouTube Data APIのキー管理（環境変数）およびAPIクライアント初期化ロジックを作成する。",
-    "status": true,
-    "priority": 10
-  },
-  {
-    "id": "B002",
-    "feature_area": "VideoImport",
-    "description": "ユーザーがアップロードした動画リストを取得するためのバックエンド関数（/api/youtube/my-videos）を作成する。",
-    "status": true,
-    "priority": 11
-  },
-  {
-    "id": "B003",
-    "feature_area": "VideoImport",
-    "description": "指定されたYouTubeプレイリストIDから動画リストを取得するためのバックエンド関数（/api/youtube/playlist）を作成する。",
-    "status": true,
-    "priority": 12
-  },
-  {
-    "id": "B004",
-    "feature_area": "VideoImport",
-    "description": "動画の字幕（トランスクリプト）データを取得するAPI連携ロジックを作成する。（youtube-transcript等のライブラリを検討）",
-    "status": true,
-    "priority": 13
-  },
-  {
-    "id": "B005",
-    "feature_area": "VideoImport",
-    "description": "動画情報（ID, タイトル）とトランスクリプトを保存するためのデータベーススキーマを定義する。（docs/import_video.md参照）",
-    "status": true,
-    "priority": 14
-  },
-  {
-    "id": "B006",
-    "feature_area": "VideoImport",
-    "description": "インポート元を選択するためのモーダル/UIコンポーネントを作成する（自分の動画/プレイリストURL入力）。",
-    "status": true,
-    "priority": 15
-  },
-  {
-    "id": "B007",
-    "feature_area": "VideoImport",
-    "description": "プレイリストURL入力フィールドのバリデーション（YouTubeプレイリストURLの正規表現チェック）を実装する。",
-    "status": true,
-    "priority": 16
-  },
-  {
-    "id": "B008",
-    "feature_area": "VideoImport",
-    "description": "インポート対象の動画を選択するためのチェックボックス付きリストUIを作成する。（全選択/解除ボタン含む）",
-    "status": true,
-    "priority": 17
-  },
-  {
-    "id": "B009",
-    "feature_area": "VideoImport",
-    "description": "選択された複数の動画をバックエンドに送信し、インポート処理を開始する関数（/api/videos/import）を作成する。",
-    "status": true,
-    "priority": 18
-  },
-  {
-    "id": "D001",
-    "feature_area": "UI/Layout",
-    "description": "UIデザインガイドライン（docs/ui_design_guidelines.md）を参照し、3つの主要エリア（デッキ、動画表示、チャット）を配置する基本レイアウトを定義する。",
-    "status": true,
-    "priority": 19
-  },
-  {
-    "id": "D002",
-    "feature_area": "UI/Layout",
-    "description": "各エリアのサイズをマウスドラッグで調整可能にするレスポンシブなレイアウトロジックを実装する。（react-resizable-panels推奨）",
-    "status": true,
-    "priority": 20
-  },
-  {
-    "id": "D003",
-    "feature_area": "VideoPlayback",
-    "description": "動画表示エリアにYouTube IFrame Player APIを導入し、動画IDに基づき動画を埋め込む機能を実装する。",
-    "status": true,
-    "priority": 21
-  },
-  {
-    "id": "D004",
-    "feature_area": "VideoPlayback",
-    "description": "目次リストからタイムスタンプ（秒）を取得し、YouTube Player APIのseekTo関数を使用して正確に動画を頭出し再生するイベントハンドラを実装する。",
-    "status": true,
-    "priority": 22
-  },
-  {
-    "id": "C001",
-    "feature_area": "TranscriptAnalysis",
-    "description": "分析結果を表示するための基本UIコンポーネント（要約欄と目次リスト欄）を作成する。",
-    "status": true,
-    "priority": 23
-  },
-  {
-    "id": "C002",
-    "feature_area": "TranscriptAnalysis",
-    "description": "分析機能に必要なライブラリ（LLM API連携用）をインストールし、環境構築を行う。",
-    "status": true,
-    "priority": 24
-  },
-  {
-    "id": "C003",
-    "feature_area": "TranscriptAnalysis/Skill",
-    "description": "トランスクリプト分析専用のSkillディレクトリ（skills/TranscriptAnalyzerSkill）と 'skill.md' ファイルを作成する。",
-    "status": true,
-    "priority": 25
-  },
-  {
-    "id": "C004",
-    "feature_area": "TranscriptAnalysis/Skill",
-    "description": "skill.mdに、要約生成、タイムスタンプ抽出、目次構成に関する具体的なルールと手順を記述する。（一つのスキルに一つのタスクに焦点を当てる原則を適用）",
-    "status": true,
-    "priority": 26
-  },
-  {
-    "id": "C005",
-    "feature_area": "TranscriptAnalysis/Backend",
-    "description": "インポートされたトランスクリプトデータを受け取り、分析処理を実行するバックエンドAPIエンドポイント（/api/analysis）を作成する。",
-    "status": true,
-    "priority": 27
-  },
-  {
-    "id": "C006",
-    "feature_area": "TranscriptAnalysis/Backend",
-    "description": "APIハンドラー内で、定義したTranscriptAnalyzerSkillを利用してLLMを呼び出し、要約と目次を生成させるロジックを実装する。",
-    "status": true,
-    "priority": 28
-  },
-  {
-    "id": "C007",
-    "feature_area": "TranscriptAnalysis/Data",
-    "description": "生成された目次データ（チャプター名、タイムスタンプ）を、フロントエンドで利用しやすいJSON形式で構造化して返す処理を実装する。",
-    "status": true,
-    "priority": 29
-  },
-  {
-    "id": "C008",
-    "feature_area": "TranscriptAnalysis/PTC",
-    "description": "トランスクリプトの文字数やタイムスタンプの計算など、決定論的な処理が必要なタスクに対し、LLMの推論に頼らずPythonコード（PTC）で実行させるためのロジックを作成する。",
-    "status": true,
-    "priority": 30
-  },
-  {
-    "id": "C009",
-    "feature_area": "TranscriptAnalysis/UI",
-    "description": "UIコンポーネントに、JSON形式の目次リストをレンダリングするロジックを実装する。",
-    "status": true,
-    "priority": 31
-  },
-  {
-    "id": "C010",
-    "feature_area": "TranscriptAnalysis/UI",
-    "description": "目次内のタイムスタンプをクリックした際に、対応するYouTube動画を頭出し再生するためのフロントエンドのイベントハンドラを作成する。",
-    "status": true,
-    "priority": 32
-  },
-  {
-    "id": "D005",
-    "feature_area": "ChatIntegration/SubAgent",
-    "description": "動画の内容に関する質問に答えるための専門的なサブエージェント（Chat Agent）を定義し、関心事の分離を実現する。",
-    "status": true,
-    "priority": 33
-  },
-  {
-    "id": "D006",
-    "feature_area": "ChatIntegration/SubAgent",
-    "description": "SubAgentが動画トランスクリプト全体をコンテキストとして保持し、その範囲内での質問応答に限定するルールをskill.mdまたはエージェント設定に記述する。",
-    "status": true,
-    "priority": 34
-  },
-  {
-    "id": "D007",
-    "feature_area": "ChatIntegration/Backend",
-    "description": "ユーザーの質問と参照すべきトランスクリプトを渡し、SubAgentからの応答を処理するためのバックエンドAPIエンドポイント（/api/chat）を実装する。",
-    "status": true,
-    "priority": 35
-  },
-  {
-    "id": "D008",
-    "feature_area": "ChatIntegration/PTC",
-    "description": "チャット機能において、トランスクリプト内でのキーワード出現頻度計算など、決定論的な処理が必要なタスクをPTCによって実行させるためのロジックをChat Agent内に組み込む。",
-    "status": true,
-    "priority": 36
-  },
-  {
-    "id": "D009",
-    "feature_area": "ChatIntegration/UI",
-    "description": "チャットUI（メッセージ入力、履歴表示、ストリーミング対応）を作成し、/api/chatエンドポイントと連携させる。",
-    "status": true,
-    "priority": 37
-  },
-  {
-    "id": "D010",
-    "feature_area": "ErrorHandling",
-    "description": "YouTube Data APIからの動画取得失敗時や、トランスクリプト分析失敗時のエラーメッセージ表示を実装する。",
-    "status": true,
-    "priority": 38
-  }
-]
+{
+  "projectTitle": "YouTube Learning Companion App",
+  "projectDescription": "YouTube動画のトランスクリプトを活用し、動画視聴、タイムスタンプ付き目次の探索、およびコンテンツに関する対話型チャットを融合させた最高の学習体験を実現するWebアプリケーション。",
+  "features": [
+    {
+      "id": "F001",
+      "name": "環境構築と初期設定",
+      "description": "Next.jsプロジェクトの初期設定、依存関係のインストール、環境変数の設定、各種ツール（ESLint, Prettier）の導入。",
+      "status": "pending",
+      "priority": "high",
+      "subFeatures": [
+        {"id": "F001-01", "name": "Next.jsプロジェクトの初期化 (App Router)", "status": "pending", "priority": "high"},
+        {"id": "F001-02", "name": "依存関係のインストール (React, ReactDOM, Next.js, etc.)", "status": "pending", "priority": "high"},
+        {"id": "F001-03", "name": "Tailwind CSSのセットアップと設定", "status": "pending", "priority": "high"},
+        {"id": "F001-04", "name": "TypeScriptの設定 (`tsconfig.json`)", "status": "pending", "priority": "high"},
+        {"id": "F001-05", "name": "ESLintとPrettierの導入と設定", "status": "pending", "priority": "medium"},
+        {"id": "F001-06", "name": "`.env`ファイルの作成と環境変数の設定", "status": "pending", "priority": "high"},
+        {"id": "F001-07", "name": "基本ディレクトリ構造の作成 (`src/app`, `src/components`, `src/lib`, `src/types`, `src/app/api`, `docs`)", "status": "pending", "priority": "high"}
+      ]
+    },
+    {
+      "id": "F002",
+      "name": "認証機能 (Google OAuth)",
+      "description": "NextAuth.jsとGoogle Providerを利用したユーザー認証機能の実装。セキュリティとユーザー体験を考慮。",
+      "status": "pending",
+      "priority": "high",
+      "docs": ["docs/authentication.md"],
+      "subFeatures": [
+        {"id": "F002-01", "name": "NextAuth.jsのインストールと基本設定", "status": "pending", "priority": "high"},
+        {"id": "F002-02", "name": "Google OAuth Providerの設定とAPIキーの管理", "status": "pending", "priority": "high", "docs": ["docs/authentication.md"]},
+        {"id": "F002-03", "name": "認証用APIルート (`src/app/api/auth/[...nextauth]/route.ts`) の作成", "status": "pending", "priority": "high"},
+        {"id": "F002-04", "name": "サインイン/サインアウト機能の実装 (UIコンポーネント含む)", "status": "pending", "priority": "high"},
+        {"id": "F002-05", "name": "セッション情報の取得と表示（ヘッダーなどにユーザー名/アバター）", "status": "pending", "priority": "medium"},
+        {"id": "F002-06", "name": "認証済みユーザーのみアクセス可能なページの保護 (`middleware.ts` またはサーバーコンポーネント)", "status": "pending", "priority": "high"},
+        {"id": "F002-07", "name": "未認証ユーザーのリダイレクト処理", "status": "pending", "priority": "medium"}
+      ]
+    },
+    {
+      "id": "F003",
+      "name": "データベース設計とORM設定",
+      "description": "Prismaを推奨ORMとして、必要なデータベーススキーマの定義とマイグレーション設定。",
+      "status": "pending",
+      "priority": "high",
+      "subFeatures": [
+        {"id": "F003-01", "name": "Prismaのインストールと初期設定 (`prisma init`)", "status": "pending", "priority": "high"},
+        {"id": "F003-02", "name": "Prismaスキーマ定義 - Userモデル (`id`, `email`, `name`, `image`など)", "status": "pending", "priority": "high"},
+        {"id": "F003-03", "name": "Prismaスキーマ定義 - Videoモデル (`id`, `youtubeId`, `title`, `description`, `thumbnailUrl`, `duration`, `userId`など)", "status": "pending", "priority": "high"},
+        {"id": "F003-04", "name": "Prismaスキーマ定義 - TranscriptSegmentモデル (`id`, `videoId`, `text`, `startMs`, `endMs`など)", "status": "pending", "priority": "high"},
+        {"id": "F003-05", "name": "Prismaスキーマ定義 - ChatSessionモデル (`id`, `videoId`, `userId`, `createdAt`, `updatedAt`など)", "status": "pending", "priority": "medium"},
+        {"id": "F003-06", "name": "Prismaスキーマ定義 - ChatMessageモデル (`id`, `sessionId`, `role`, `content`, `timestampMs`, `createdAt`など)", "status": "pending", "priority": "medium"},
+        {"id": "F003-07", "name": "初期マイグレーションの実行", "status": "pending", "priority": "high"},
+        {"id": "F003-08", "name": "Prisma Clientの初期化と使用準備", "status": "pending", "priority": "high"}
+      ]
+    },
+    {
+      "id": "F004",
+      "name": "YouTube動画インポート機能",
+      "description": "YouTube Data API v3と字幕取得ライブラリを活用し、指定URLから動画情報とトランスクリプトをインポートしDBに保存する機能。",
+      "status": "pending",
+      "priority": "high",
+      "docs": ["docs/import_video.md", "docs/incident_reports.md", "docs/walkthrough_20241214.md"],
+      "subFeatures": [
+        {"id": "F004-01", "name": "YouTube Data API v3クライアントのセットアップとAPIキーの管理", "status": "pending", "priority": "high"},
+        {"id": "F004-02", "name": "動画URL入力フォームの作成 (UIコンポーネント `src/components/ImportForm.tsx`)", "status": "pending", "priority": "high"},
+        {"id": "F004-03", "name": "動画情報の取得API (`GET /api/youtube/video-info?url=`) の実装", "status": "pending", "priority": "high"},
+        {"id": "F004-04", "name": "YouTubeから字幕データを取得するユーティリティ関数 (`src/lib/transcript-fetcher.ts`) の開発", "status": "pending", "priority": "high", "notes": "過去のタイムスタンプ問題(2025-12-14)を考慮し、厳密なプロパティチェックとデータ正規化(JSON.parse(JSON.stringify))を必須とする。恣意的なしきい値(10秒ルール)の再導入は禁止。", "docs": ["docs/incident_reports.md", "docs/walkthrough_20241214.md"]},
+        {"id": "F004-05", "name": "動画データと字幕データをDBに保存するAPI (`POST /api/videos`) の実装", "status": "pending", "priority": "high"},
+        {"id": "F004-06", "name": "インポート処理中のローディング表示とエラーハンドリング", "status": "pending", "priority": "medium"},
+        {"id": "F004-07", "name": "既にインポート済みの動画に対する重複チェック", "status": "pending", "priority": "medium"}
+      ]
+    },
+    {
+      "id": "F005",
+      "name": "ダッシュボード機能",
+      "description": "ユーザーがインポートした動画を一覧表示し、管理・操作できるダッシュボードページ。",
+      "status": "pending",
+      "priority": "high",
+      "docs": ["docs/ui_design_guidelines.md", "docs/incident_reports.md"],
+      "subFeatures": [
+        {"id": "F005-01", "name": "ダッシュボードページのルーティング (`/dashboard`)", "status": "pending", "priority": "high"},
+        {"id": "F005-02", "name": "ユーザーがインポートした動画一覧を取得するAPI (`GET /api/videos`) の実装", "status": "pending", "priority": "high"},
+        {"id": "F005-03", "name": "動画カードコンポーネント (`src/components/VideoCard.tsx`) の作成", "status": "pending", "priority": "high", "notes": "UIデザインガイドラインに沿ってデザイン。動画タイトル、サムネイル、インポート日を表示。"},
+        {"id": "F005-04", "name": "動画カードの一覧表示 (`src/app/dashboard/page.tsx` および `src/components/DashboardClient.tsx`)", "status": "pending", "priority": "high"},
+        {"id": "F005-05", "name": "動画詳細ページへの遷移リンク (動画カードから `/learn/[videoId]`)", "status": "pending", "priority": "high", "notes": "過去のイベント競合問題(2025-12-14)を考慮し、`<Link>`でカード全体をラップせず、`div` + `onClick`でルーティング、または削除ボタンと明確に分離する構造を推奨。", "docs": ["docs/incident_reports.md"]},
+        {"id": "F005-06", "name": "動画削除ボタンの追加と機能実装", "status": "pending", "priority": "high", "notes": "過去の削除機能問題(2025-12-14)を考慮。`DELETE /api/videos/[id]`エンドポイントを実装。`window.confirm`ではなく、即時削除またはカスタムモーダルUIでの確認を検討。イベント伝播の停止を確実に行う。", "docs": ["docs/incident_reports.md"]},
+        {"id": "F005-07", "name": "動画検索/フィルタリング機能 (オプション)", "status": "pending", "priority": "low"},
+        {"id": "F005-08", "name": "ページネーションまたは無限スクロール (オプション)", "status": "pending", "priority": "low"}
+      ]
+    },
+    {
+      "id": "F006",
+      "name": "学習ページ (動画視聴・トランスクリプト・チャット)",
+      "description": "動画プレーヤー、同期トランスクリプト、タイムスタンプ付き目次、対話型チャットを融合した学習体験を提供するコアページ。",
+      "status": "pending",
+      "priority": "high",
+      "docs": ["docs/ui_design_guidelines.md", "docs/incident_reports.md", "docs/walkthrough_20241214.md"],
+      "subFeatures": [
+        {"id": "F006-01", "name": "学習ページのルーティング (`/learn/[videoId]`)", "status": "pending", "priority": "high"},
+        {"id": "F006-02", "name": "動画情報と字幕データを取得するAPI (`GET /api/videos/[id]`, `GET /api/transcripts/[videoId]`) の実装", "status": "pending", "priority": "high"},
+        {"id": "F006-03", "name": "YouTube動画プレーヤーの埋め込み (ReactPlayerなどのライブラリを検討)", "status": "pending", "priority": "high"},
+        {"id": "F006-04", "name": "トランスクリプト表示コンポーネントの作成", "status": "pending", "priority": "high", "notes": "字幕テキストとタイムスタンプ (`startMs`, `endMs`) を表示。過去のタイムスタンプ問題(2025-12-14)を考慮し、正確な表示を保証。", "docs": ["docs/incident_reports.md", "docs/walkthrough_20241214.md"]},
+        {"id": "F006-05", "name": "動画再生位置とトランスクリプトのリアルタイム同期ハイライト", "status": "pending", "priority": "high"},
+        {"id": "F006-06", "name": "トランスクリプト上のテキストクリックで動画の該当位置へシーク機能", "status": "pending", "priority": "high"},
+        {"id": "F006-07", "name": "タイムスタンプ付き目次 (チャプター) 生成・表示機能 (トランスクリプトから自動生成)", "status": "pending", "priority": "medium", "notes": "長い動画の場合、主要なトピックを抽出して目次とする。"},
+        {"id": "F006-08", "name": "対話型チャットUIコンポーネントの作成 (入力フォーム、メッセージ表示エリア)", "status": "pending", "priority": "high"},
+        {"id": "F006-09", "name": "チャットメッセージ送信API (`POST /api/chat`) の実装", "status": "pending", "priority": "high", "notes": "動画の内容に基づいたAI応答を生成。動画ID、現在の動画再生時間、トランスクリプトの関連セグメントをコンテキストとしてAIに渡す。"},
+        {"id": "F006-10", "name": "AI応答のリアルタイム表示とチャット履歴の保存", "status": "pending", "priority": "high"},
+        {"id": "F006-11", "name": "AIが言及したトランスクリプト箇所へのリンクまたはハイライト機能", "status": "pending", "priority": "medium"},
+        {"id": "F006-12", "name": "チャットセッション管理機能 (複数チャットセッションの切り替えなど, オプション)", "status": "pending", "priority": "low"},
+        {"id": "F006-13", "name": "キーボードショートカット (再生/一時停止、早送り/巻き戻しなど) (オプション)", "status": "pending", "priority": "low"}
+      ]
+    },
+    {
+      "id": "F007",
+      "name": "共通UIコンポーネントとスタイリング",
+      "description": "Tailwind CSSとUIデザインガイドラインに基づいた、再利用可能なUIコンポーネントと全体的なスタイリング。",
+      "status": "pending",
+      "priority": "medium",
+      "docs": ["docs/ui_design_guidelines.md"],
+      "subFeatures": [
+        {"id": "F007-01", "name": "グローバルなスタイル定義 (`src/app/globals.css`)", "status": "pending", "priority": "high"},
+        {"id": "F007-02", "name": "ヘッダーコンポーネント (ナビゲーション、ユーザー情報、ロゴ)", "status": "pending", "priority": "high"},
+        {"id": "F007-03", "name": "フッターコンポーネント (著作権情報など)", "status": "pending", "priority": "low"},
+        {"id": "F007-04", "name": "ボタン、入力フィールド、カードなどの汎用UIコンポーネント", "status": "pending", "priority": "high"},
+        {"id": "F007-05", "name": "ローディングスピナー/スケルトンUIコンポーネント", "status": "pending", "priority": "medium"},
+        {"id": "F007-06", "name": "レスポンシブデザインの実装 (モバイル/タブレット/デスクトップ対応)", "status": "pending", "priority": "high", "notes": "Tailwind CSSのブレークポイントを活用。"},
+        {"id": "F007-07", "name": "アクセシビリティ考慮 (ARIA属性など) (オプション)", "status": "pending", "priority": "low"}
+      ]
+    },
+    {
+      "id": "F008",
+      "name": "エラーハンドリングとUX向上",
+      "description": "ユーザーフレンドリーなエラー表示、フォームバリデーション、通知機能など。",
+      "status": "pending",
+      "priority": "medium",
+      "subFeatures": [
+        {"id": "F008-01", "name": "APIリクエスト時のエラーハンドリングとユーザーへのフィードバック", "status": "pending", "priority": "high"},
+        {"id": "F008-02", "name": "入力フォームのクライアントサイド・サーバーサイドバリデーション", "status": "pending", "priority": "high"},
+        {"id": "F008-03", "name": "トースト通知 (例: '動画がインポートされました', 'エラーが発生しました')", "status": "pending", "priority": "medium"},
+        {"id": "F008-04", "name": "存在しないページ (`404`) のカスタムエラーページ", "status": "pending", "priority": "medium"},
+        {"id": "F008-05", "name": "一般的なエラー (`500`) のカスタムエラーページ", "status": "pending", "priority": "medium"}
+      ]
+    },
+    {
+      "id": "F009",
+      "name": "型定義とユーティリティ",
+      "description": "TypeScriptの型定義と再利用可能なユーティリティ関数の集約。",
+      "status": "pending",
+      "priority": "medium",
+      "subFeatures": [
+        {"id": "F009-01", "name": "共通型定義ファイル (`src/types/index.ts`など) の作成", "status": "pending", "priority": "high"},
+        {"id": "F009-02", "name": "YouTube APIレスポンスの型定義", "status": "pending", "priority": "high"},
+        {"id": "F009-03", "name": "Prismaモデルの型定義 (自動生成されたものを含む)", "status": "pending", "priority": "high"},
+        {"id": "F009-04", "name": "日付/時刻フォーマットユーティリティ (`src/lib/date-utils.ts`)", "status": "pending", "priority": "medium"},
+        {"id": "F009-05", "name": "URL関連ユーティリティ (`src/lib/url-utils.ts`)", "status": "pending", "priority": "medium"},
+        {"id": "F009-06", "name": "トランスクリプト処理ユーティリティ (`src/lib/transcript-utils.ts`) の定義と拡張", "status": "pending", "priority": "high", "notes": "過去の修正経緯から、このファイルのロジックは極めて重要。厳密なテストと仕様遵守を求める。"}
+      ]
+    }
+  ]
+}
