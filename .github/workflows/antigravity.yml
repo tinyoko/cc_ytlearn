@@ -27,43 +27,40 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          REPOSITORY: ${{ github.repository }}
         run: |
-          # 1. 必要なツールのインストール
-          npm install -g @google/generative-ai
-          
-          # 2. Geminiに指示を出し、コードを修正させるスクリプト（インライン作成）
-          cat << 'EOF' > antigravity_task.js
+          # 1. パッケージをその場で（カレントディレクトリに）インストール
+          npm install @google/generative-ai --no-save
+
+          # 2. Node.jsを実行してGeminiから回答を得る
+          node << 'EOF'
           const { GoogleGenerativeAI } = require("@google/generative-ai");
           const fs = require('fs');
-          
+
           async function run() {
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-            
-            // 修正経緯ドキュメントを読み込ませる
-            const incidentReport = fs.readFileSync('docs/incident_reports.md', 'utf8');
-            const projectRules = fs.readFileSync('CLAUDE.md', 'utf8');
-            
-            const prompt = `
-            あなたはAntigravity。以下のプロジェクトルールと過去の修正経緯に基づき作業してください。
-            
-            【プロジェクトルール】
-            ${projectRules}
-            
-            【過去の修正経緯】
-            ${incidentReport}
-            
-            【今回の指示】
-            ${process.env.COMMENT_BODY}
-            `;
-            
-            const result = await model.generateContent(prompt);
-            console.log(result.response.text());
+            try {
+              const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+              const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+              
+              const incidentReport = fs.readFileSync('docs/incident_reports.md', 'utf8');
+              const projectRules = fs.readFileSync('CLAUDE.md', 'utf8');
+              
+              const prompt = `あなたはAntigravity。以下のルールと経緯に基づき、日本語でREADME.mdの構成案を作成してください。
+              
+              【プロジェクトルール】
+              ${projectRules}
+              
+              【過去の修正経緯】
+              ${incidentReport}
+              
+              【今回の指示】
+              ${process.env.COMMENT_BODY}`;
+              
+              const result = await model.generateContent(prompt);
+              console.log(result.response.text());
+            } catch (e) {
+              console.error("Gemini API Error:", e.message);
+              process.exit(1);
+            }
           }
           run();
           EOF
-
-          # 3. スクリプトの実行
-          node antigravity_task.js
