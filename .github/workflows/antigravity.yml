@@ -27,20 +27,20 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: ${{ github.event.comment.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          # 1. 最新のSDKを一時的にインストール
+          # 1. SDKを一時的にインストール
           npm install @google/generative-ai --no-save
 
-          # 2. クォータ制限が緩い最新の高速モデル Gemini 2.5 Flash を使用して実行
-          node << 'EOF'
+          # 2. Geminiからの回答を取得し、環境変数に格納
+          # 標準出力のみをキャプチャするため、エラーは標準エラー出力へ逃がします
+          RESPONSE=$(node << 'EOF'
           const { GoogleGenerativeAI } = require("@google/generative-ai");
           const fs = require('fs');
 
           async function run() {
             try {
               const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-              
-              // 429エラー回避のため、利用制限枠が大きい安定した最新モデルに更新
               const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
               
               const incidentReport = fs.readFileSync('docs/incident_reports.md', 'utf8');
@@ -60,11 +60,20 @@ jobs:
               回答は日本語でお願いします。`;
               
               const result = await model.generateContent(prompt);
-              console.log(result.response.text());
+              process.stdout.write(result.response.text());
             } catch (e) {
-              console.error("Gemini API Error:", e.message);
+              process.stderr.write("Gemini API Error: " + e.message);
               process.exit(1);
             }
           }
           run();
           EOF
+          )
+
+          # 3. GitHub CLIを使用してIssueにコメントとして投稿
+          if [ -n "$RESPONSE" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
+          else
+            echo "Error: Gemini response is empty."
+            exit 1
+          fi
