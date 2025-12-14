@@ -27,6 +27,8 @@ LLMのコンテキストウィンドウを圧迫するのを避けるため、�
 | `docs/ui_design_guidelines.md` | UIデザインガイドライン（色、フォント、レイアウト） |
 | `features.json` | タスク一覧（イニシャライザーが管理） |
 | `progress.txt` | 作業進捗ログ（コーディングエージェントが更新） |
+| `docs/incident_reports.md` | 重要: 過去の重大な不具合（タイムスタンプ等）の解決策と再発防止策 |
+| `docs/walkthrough_20241214.md` | Geminiによる字幕・動画削除機能修正の技術的詳細と検証ログ |
 
 ## 技術スタック
 - **フレームワーク**: Next.js (App Router)

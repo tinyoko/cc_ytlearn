@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { LearnClient } from "./learn-client";
-import { TranscriptSegment } from "@/lib/transcript";
+import type { TranscriptSegment } from "@/types/transcript";
 
 interface PageProps {
   params: Promise<{ id: string }>;

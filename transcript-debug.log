@@ -1,0 +1,6 @@
+[2025-12-13T23:11:43.855Z] --- Fetching for zWU4wnKi62M ---
+[2025-12-13T23:11:44.781Z] Raw segments count: 163
+[2025-12-13T23:11:44.781Z] First raw segment: {"type":"TranscriptSegment","start_ms":"120","end_ms":"3560","snippet":{"text":"皆様、こんにちは。本日は日本の実用新案","runs":[{"text":"皆様、こんにちは。本日は日本の実用新案","bold":false,"bracket":false,"deemphasize":false,"italics":false,"strikethrough":false,"error_underline":false,"underline":false}],"rtl":false},"start_time_text":{"text":"0:00","rtl":false},"target_id":"zWU4wnKi62M.CgNhc3ISAmphGgA%3D.120.3560"}
+[2025-12-13T23:11:44.782Z] Normalized segments count: 163
+[2025-12-13T23:11:44.782Z] First normalized segment: {"text":"皆様、こんにちは。本日は日本の実用新案","start":0.12,"duration":3.44}
+[2025-12-13T23:11:44.782Z] Valid segments count: 163

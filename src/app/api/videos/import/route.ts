@@ -68,7 +68,15 @@ export async function POST(request: NextRequest) {
         }
 
         // トランスクリプトを取得
+        console.log(`[Import Debug] Fetching transcript for ${video.videoId}...`);
         const segments = await getTranscript(video.videoId);
+        console.log(`[Import Debug] Fetched ${segments.length} segments.`);
+        if (segments.length > 0) {
+          console.log(`[Import Debug] First segment:`, JSON.stringify(segments[0]));
+        } else {
+          console.log(`[Import Debug] No segments returned.`);
+        }
+
         const fullText = transcriptToText(segments);
 
         // 動画とトランスクリプトを保存
@@ -85,11 +93,11 @@ export async function POST(request: NextRequest) {
             transcript:
               segments.length > 0
                 ? {
-                    create: {
-                      segments: JSON.stringify(segments),
-                      fullText,
-                    },
-                  }
+                  create: {
+                    segments: JSON.stringify(segments),
+                    fullText,
+                  },
+                }
                 : undefined,
           },
         });
