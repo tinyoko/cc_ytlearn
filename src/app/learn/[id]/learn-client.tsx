@@ -98,10 +98,10 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
     <div className="h-screen flex flex-col bg-slate-900">
       {/* ヘッダー */}
       <header className="flex-shrink-0 border-b border-slate-800 px-4 py-3">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
           <Link
             href="/dashboard"
-            className="p-2 text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-200 transition-colors flex-shrink-0"
           >
             <svg
               className="w-5 h-5"
@@ -117,10 +117,28 @@ export function LearnClient({ video, transcript, chapters: initialChapters }: Le
               />
             </svg>
           </Link>
-          <h1 className="text-lg font-medium text-slate-100 truncate">
+          <h1 className="text-lg font-medium text-slate-100 truncate flex-1">
             {video.title}
           </h1>
         </div>
+        <button
+          onClick={async () => {
+            // Confirm removed per user request (popup issues)
+            try {
+              const res = await fetch(`/api/videos/${video.id}`, { method: "DELETE" });
+              if (res.ok) {
+                router.push("/dashboard");
+              } else {
+                alert("削除に失敗しました");
+              }
+            } catch (err) {
+              alert("エラーが発生しました: " + err);
+            }
+          }}
+          className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded border border-red-900/50 transition-colors"
+        >
+          動画を削除
+        </button>
       </header>
 
       {/* メインコンテンツ */}

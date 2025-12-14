@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ImportModal } from "@/components/import/import-modal";
-import Link from "next/link";
 
 interface Video {
   id: string;
@@ -25,6 +25,7 @@ interface DashboardClientProps {
 export function DashboardClient({ user, initialVideos }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [videos, setVideos] = useState(initialVideos);
+  const router = useRouter(); // Initialize router
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return "--:--";
@@ -132,30 +133,58 @@ export function DashboardClient({ user, initialVideos }: DashboardClientProps) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {videos.map((video) => (
-              <Link
+              <div
                 key={video.id}
-                href={`/learn/${video.id}`}
-                className="bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-750 transition-colors group"
+                className="relative group bg-slate-800 rounded-lg overflow-hidden hover:bg-slate-750 transition-colors cursor-pointer"
+                onClick={() => router.push(`/learn/${video.id}`)}
               >
-                <div className="relative">
-                  <img
-                    src={video.thumbnailUrl || "/placeholder.png"}
-                    alt={video.title}
-                    className="w-full aspect-video object-cover"
-                  />
-                  <span className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs rounded">
-                    {formatDuration(video.duration)}
-                  </span>
+                <div className="block h-full">
+                  <div className="relative">
+                    <img
+                      src={video.thumbnailUrl || "/placeholder.png"}
+                      alt={video.title}
+                      className="w-full aspect-video object-cover"
+                    />
+                    <span className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs rounded">
+                      {formatDuration(video.duration)}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-sm font-medium text-slate-100 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                      {video.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {new Date(video.createdAt).toLocaleDateString("ja-JP")} に追加
+                    </p>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-slate-100 line-clamp-2 group-hover:text-blue-400 transition-colors">
-                    {video.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-2">
-                    {new Date(video.createdAt).toLocaleDateString("ja-JP")} に追加
-                  </p>
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Confirm removed per user request (popup issues)
+                      try {
+                        const res = await fetch(`/api/videos/${video.id}`, { method: "DELETE" });
+                        if (res.ok) {
+                          setVideos(videos.filter(v => v.id !== video.id));
+                        } else {
+                          alert("削除に失敗しました");
+                        }
+                      } catch (err) {
+                        alert("エラーが発生しました");
+                      }
+                    }}
+                    className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded shadow-lg cursor-pointer"
+                    title="削除"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}

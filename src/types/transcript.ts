@@ -45,25 +45,8 @@ export interface RawTranscriptSnippet {
 export interface RawTranscriptSegment {
   snippet?: RawTranscriptSnippet;
 
-  // snippetがない場合、直接プロパティを持つ可能性があるため、
-  // RawTranscriptSnippetと同じプロパティを定義
-  text?: string;
-  start_ms?: number | string;
-  startMs?: number | string;
-  startOffsetMs?: number | string;
-  start_offset_ms?: number | string;
-  start_time_ms?: number | string;
-  startTimeMs?: number | string;
-  end_ms?: number | string;
-  endMs?: number | string;
-  endOffsetMs?: number | string;
-  end_offset_ms?: number | string;
-  end_time_ms?: number | string;
-  endTimeMs?: number | string;
-  start?: number | string;
-  end?: number | string;
-  duration?: number | string;
-  dur?: number | string;
-
+  // snippetがない場合、直接プロパティを持つ可能性があるため
+  // インデックスシグネチャでカバーする形にするか、交差型を使用する
+  // 簡略化のため、RawTranscriptSnippetのプロパティをトップレベルでも持てるようにする
   [key: string]: unknown;
 }

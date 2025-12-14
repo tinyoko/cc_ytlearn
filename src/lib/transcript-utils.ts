@@ -5,14 +5,6 @@
 import type { TranscriptSegment, RawTranscriptSnippet, RawTranscriptSegment } from "@/types/transcript";
 
 /**
- * タイムスタンプの判定閾値（定数化）
- */
-// 10秒未満の値は秒単位、10秒以上はミリ秒単位と判定
-export const TIME_UNIT_THRESHOLD_MS = 10000;
-// 100秒未満の値は秒単位の可能性がある
-export const SECONDS_CANDIDATE_THRESHOLD = 100000;
-
-/**
  * 数値を安全にパースする関数
  * @param value パースする値（数値、文字列、undefined、null）
  * @returns パースされた数値（無効な場合は0）
@@ -32,101 +24,96 @@ export function parseTimeValue(value: number | string | undefined | null): numbe
 
 /**
  * セグメントから開始時刻を抽出（複数のプロパティ名に対応）
+ * 以前の複雑な単位推測ロジックを廃止し、プロパティ名に基づく厳格な判定を行う
+ * - Ms/msが含まれるプロパティ: ミリ秒として扱い / 1000
+ * - それ以外(startなど): 秒として扱う
+ * 
  * @param segment トランスクリプトセグメント
  * @returns 開始時刻（秒単位）
  */
 export function getSegmentStartTime(segment: TranscriptSegment | RawTranscriptSnippet): number {
-  // すでに正規化されている場合（DBから読み込んだデータ）
-  // TranscriptSegment型は {text, start, duration} で start は秒単位
-  if ('start' in segment && typeof segment.start === 'number' &&
-      'duration' in segment && !('startMs' in segment) && !('startOffsetMs' in segment)) {
-    // すでに秒単位に正規化済み - そのまま返す
+  // 1. 正規化済みデータのチェック (型ガード)
+  // 1. 正規化済みデータのチェック (型ガード)
+  if ('start' in segment && typeof segment.start === 'number') {
     return segment.start;
   }
 
-  // 正規化されていない生データの場合、様々なプロパティ名を試す
-  const rawSegment = segment as RawTranscriptSnippet;
+  const raw = segment as RawTranscriptSnippet;
 
-  // プロパティ名に "Ms" が含まれる場合はミリ秒と判定
-  const startOffsetMs = rawSegment.startOffsetMs ?? rawSegment.start_offset_ms;
-  if (startOffsetMs !== undefined) {
-    return parseTimeValue(startOffsetMs) / 1000;
-  }
+  // 2. ミリ秒系プロパティの優先チェック
+  // 順序: startOffsetMs -> startMs -> startTimeMs -> start_ms 等
+  const msCandidates = [
+    raw.startOffsetMs,
+    raw.start_offset_ms,
+    raw.startMs,
+    raw.start_ms,
+    raw.startTimeMs,
+    raw.start_time_ms
+  ];
 
-  const startMs = rawSegment.start_ms ?? rawSegment.startMs;
-  if (startMs !== undefined) {
-    return parseTimeValue(startMs) / 1000;
-  }
-
-  const startTimeMs = rawSegment.startTimeMs ?? rawSegment.start_time_ms;
-  if (startTimeMs !== undefined) {
-    return parseTimeValue(startTimeMs) / 1000;
-  }
-
-  // "Ms" がつかないプロパティは秒単位の可能性が高い
-  const start = rawSegment.start;
-  if (start !== undefined) {
-    const value = parseTimeValue(start);
-    // 非常に大きい値（10000秒 = 2.7時間以上）ならミリ秒の可能性
-    if (value > TIME_UNIT_THRESHOLD_MS) {
-      return value / 1000;
+  for (const candidate of msCandidates) {
+    if (candidate !== undefined) {
+      return parseTimeValue(candidate) / 1000;
     }
-    return value;
+  }
+
+  // 3. 秒単位プロパティのチェック
+  if (raw.start !== undefined) {
+    return parseTimeValue(raw.start);
   }
 
   return 0;
 }
 
 /**
- * セグメントから表示時間を計算（複数のプロパティ名に対応）
+ * セグメントから表示時間を計算
  * @param segment トランスクリプトセグメント
  * @returns 表示時間（秒単位）
  */
 export function getSegmentDuration(segment: TranscriptSegment | RawTranscriptSnippet): number {
-  // すでに正規化されている場合（DBから読み込んだデータ）
-  if ('duration' in segment && typeof segment.duration === 'number' &&
-      'start' in segment && !('dur' in segment) && !('endMs' in segment)) {
-    // すでに秒単位に正規化済み - そのまま返す
+  // 1. 正規化済みデータのチェック
+  if ('duration' in segment && typeof segment.duration === 'number' && !('dur' in segment)) {
     return segment.duration;
   }
 
-  // 正規化されていない生データの場合
-  const rawSegment = segment as RawTranscriptSnippet;
+  const raw = segment as RawTranscriptSnippet;
+
+  // 終了時刻がある場合はそれを使用 (End - Start)
   const startTime = getSegmentStartTime(segment);
+  let endTime = 0;
+  let hasEndTime = false;
 
-  // プロパティ名に "Ms" が含まれる終了時刻プロパティをチェック
-  const endOffsetMs = rawSegment.endOffsetMs ?? rawSegment.end_offset_ms;
-  if (endOffsetMs !== undefined) {
-    const endTime = parseTimeValue(endOffsetMs) / 1000;
+  // ミリ秒系終了時刻チェック
+  const endMsCandidates = [
+    raw.endOffsetMs,
+    raw.end_offset_ms,
+    raw.endMs,
+    raw.end_ms,
+    raw.endTimeMs,
+    raw.end_time_ms
+  ];
+
+  for (const candidate of endMsCandidates) {
+    if (candidate !== undefined) {
+      endTime = parseTimeValue(candidate) / 1000;
+      hasEndTime = true;
+      break;
+    }
+  }
+
+  if (!hasEndTime && raw.end !== undefined) {
+    endTime = parseTimeValue(raw.end);
+    hasEndTime = true;
+  }
+
+  if (hasEndTime) {
     return Math.max(0, endTime - startTime);
   }
 
-  const endMs = rawSegment.end_ms ?? rawSegment.endMs;
-  if (endMs !== undefined) {
-    const endTime = parseTimeValue(endMs) / 1000;
-    return Math.max(0, endTime - startTime);
-  }
-
-  const endTimeMs = rawSegment.endTimeMs ?? rawSegment.end_time_ms;
-  if (endTimeMs !== undefined) {
-    const endTime = parseTimeValue(endTimeMs) / 1000;
-    return Math.max(0, endTime - startTime);
-  }
-
-  // "Ms" がつかないendプロパティ
-  const end = rawSegment.end;
-  if (end !== undefined) {
-    const value = parseTimeValue(end);
-    const endTime = value > TIME_UNIT_THRESHOLD_MS ? value / 1000 : value;
-    return Math.max(0, endTime - startTime);
-  }
-
-  // durationプロパティから直接取得
-  const durValue = rawSegment.dur ?? rawSegment.duration;
+  // もし終了時刻がなければ duration プロパティを探す
+  const durValue = raw.dur ?? raw.duration;
   if (durValue !== undefined) {
-    const dur = parseTimeValue(durValue);
-    // 非常に大きい値ならミリ秒の可能性
-    return dur > TIME_UNIT_THRESHOLD_MS ? dur / 1000 : dur;
+    return parseTimeValue(durValue); // duration は秒とみなす（Msプロパティがないため）
   }
 
   return 0;
@@ -169,86 +156,49 @@ export function normalizeSegment(
   rawSegment: RawTranscriptSegment,
   index: number
 ): TranscriptSegment | null {
-  // snippetがあるかチェック
-  const data = rawSegment.snippet || rawSegment;
-
-  if (!data || typeof data !== "object") {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[Transcript] Segment ${index} is not an object:`, data);
-    }
+  if (!rawSegment || typeof rawSegment !== "object") {
     return null;
   }
 
-  let startMs = 0;
-  let endMs = 0;
+  // FORCE SIMPLE EXTRACTION (Reference Project Style)
+  // item.start_ms is on the parent. item.snippet.text is in snippet.
 
-  // プロパティ名に基づいて単位を判定（"Ms" がつくプロパティはミリ秒）
+  // FORCE PLAIN OBJECT: Ensure we are working with a plain JSON object
+  // distinct from potentially complex class instances from the library.
+  const raw = JSON.parse(JSON.stringify(rawSegment));
 
-  // 開始時刻の取得（プロパティ名ベースで単位判定）
-  if (data.startOffsetMs !== undefined || data.start_offset_ms !== undefined) {
-    startMs = parseTimeValue(data.startOffsetMs ?? data.start_offset_ms);
-  } else if (data.start_ms !== undefined || data.startMs !== undefined) {
-    startMs = parseTimeValue(data.start_ms ?? data.startMs);
-  } else if (data.start_time_ms !== undefined || data.startTimeMs !== undefined) {
-    startMs = parseTimeValue(data.start_time_ms ?? data.startTimeMs);
-  } else if (data.start !== undefined) {
-    // "Ms" がつかない場合は秒単位の可能性
-    const value = parseTimeValue(data.start);
-    // 非常に大きい値（10000秒 = 2.7時間以上）の場合のみミリ秒と判定
-    startMs = value > TIME_UNIT_THRESHOLD_MS ? value : value * 1000;
+  // Try multiple property names for start time (Youtubei.js versions vary)
+  let startMs = parseInt(raw.start_ms);
+  if (isNaN(startMs)) startMs = parseInt(raw.startTimeMs);
+  if (isNaN(startMs)) startMs = parseInt(raw.offsetMs);
+  if (isNaN(startMs)) startMs = parseInt(raw.startOffsetMs);
+  if (isNaN(startMs)) startMs = parseInt(raw.start_time_ms);
+
+  const endMs = parseInt(raw.end_ms);
+  const text = raw.snippet?.text || raw.text || "";
+
+  // Duration calculation
+  let duration = 0;
+  if (!isNaN(startMs) && !isNaN(endMs)) {
+    duration = (endMs - startMs) / 1000;
+  } else if (raw.duration) {
+    duration = parseFloat(raw.duration);
   }
 
-  // 終了時刻の取得（プロパティ名ベースで単位判定）
-  if (data.endOffsetMs !== undefined || data.end_offset_ms !== undefined) {
-    endMs = parseTimeValue(data.endOffsetMs ?? data.end_offset_ms);
-  } else if (data.end_ms !== undefined || data.endMs !== undefined) {
-    endMs = parseTimeValue(data.end_ms ?? data.endMs);
-  } else if (data.end_time_ms !== undefined || data.endTimeMs !== undefined) {
-    endMs = parseTimeValue(data.end_time_ms ?? data.endTimeMs);
-  } else if (data.end !== undefined) {
-    const value = parseTimeValue(data.end);
-    endMs = value > TIME_UNIT_THRESHOLD_MS ? value : value * 1000;
+  // Fallback for start if start_ms is missing (should not happen based on debug data)
+  let start = 0;
+  if (!isNaN(startMs)) {
+    start = startMs / 1000;
+  } else if (raw.start) {
+    start = parseFloat(raw.start);
   }
 
-  // endが取得できない場合、durationから計算
-  if (endMs === 0 || endMs <= startMs) {
-    const durationValue = data.duration ?? data.dur;
-    if (durationValue !== undefined) {
-      const value = parseTimeValue(durationValue);
-      // durationも "Ms" がつかない場合は秒単位の可能性
-      const durationMs = value > TIME_UNIT_THRESHOLD_MS ? value : value * 1000;
-      endMs = startMs + durationMs;
-    }
-  }
-
-  // デバッグ: 最初のセグメントのみログ出力（開発環境のみ）
-  if (index === 0 && process.env.NODE_ENV === 'development') {
-    console.log(`[Transcript Debug] First segment structure:`, JSON.stringify(data, null, 2));
-    console.log(`[Transcript Debug] Parsed timestamps: start=${startMs}ms, end=${endMs}ms`);
-
-    if (startMs === 0 && endMs === 0) {
-      console.error(`[Transcript Error] ❌ No valid timestamp found in first segment`);
-      console.error(`[Transcript Error] Available keys:`, Object.keys(data));
-    } else {
-      console.log(`[Transcript Success] ✓ Timestamps parsed successfully`);
-    }
-  }
-
-  // データ品質チェック（負の値を除外）
-  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs < 0 || endMs < 0) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        `[Transcript Warning] Invalid timestamp at segment ${index}: start=${startMs}ms, end=${endMs}ms`
-      );
-    }
-    return null;
-  }
-
-  const text = String(data.text || rawSegment.text || "");
+  // Validate
+  if (!text && duration <= 0) return null;
 
   return {
-    text: text,
-    start: startMs / 1000,
-    duration: Math.max(0, (endMs - startMs) / 1000),
+    text: String(text),
+    start: start,
+    duration: Math.max(0, duration)
   };
 }

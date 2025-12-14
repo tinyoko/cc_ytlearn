@@ -18,6 +18,14 @@ export function TranscriptPanel({
   const containerRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
+  // DEBUG LOGGING
+  useEffect(() => {
+    if (transcript.length > 0) {
+      console.log("[TranscriptPanel] First segment:", transcript[0]);
+      console.log("[TranscriptPanel] Calculated First StartTime:", getSegmentStartTime(transcript[0]));
+    }
+  }, [transcript]);
+
   // 現在再生中のセグメントを特定（二分探索で最適化）
   const currentSegmentIndex = (() => {
     if (transcript.length === 0) return -1;
@@ -102,6 +110,7 @@ export function TranscriptPanel({
 
   return (
     <div ref={containerRef} className="h-full overflow-y-auto">
+
       <div className="divide-y divide-slate-700/50">
         {transcript.map((segment, index) => {
           const isActive = index === currentSegmentIndex;
@@ -112,22 +121,19 @@ export function TranscriptPanel({
               key={`${startTime}-${index}`}
               ref={isActive ? activeRef : null}
               onClick={() => onSeek(startTime)}
-              className={`w-full px-4 py-2 text-left transition-colors hover:bg-slate-700/50 ${
-                isActive ? "bg-blue-500/20" : ""
-              }`}
+              className={`w-full px-4 py-2 text-left transition-colors hover:bg-slate-700/50 ${isActive ? "bg-blue-500/20" : ""
+                }`}
             >
               <div className="flex items-start gap-3">
                 <span
-                  className={`flex-shrink-0 text-xs font-mono mt-0.5 ${
-                    isActive ? "text-blue-400" : "text-slate-500"
-                  }`}
+                  className={`flex-shrink-0 text-xs font-mono mt-0.5 ${isActive ? "text-blue-400" : "text-slate-500"
+                    }`}
                 >
                   {formatTimestamp(startTime)}
                 </span>
                 <p
-                  className={`text-sm leading-relaxed ${
-                    isActive ? "text-slate-100" : "text-slate-300"
-                  }`}
+                  className={`text-sm leading-relaxed ${isActive ? "text-slate-100" : "text-slate-300"
+                    }`}
                 >
                   {segment.text}
                 </p>

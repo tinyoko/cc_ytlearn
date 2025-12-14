@@ -7,7 +7,11 @@ let innertubeInstance: Innertube | null = null;
 
 async function getInnertube(): Promise<Innertube> {
   if (!innertubeInstance) {
-    innertubeInstance = await Innertube.create();
+    innertubeInstance = await Innertube.create({
+      lang: "ja",
+      location: "JP",
+      retrieve_player: false, // Speed up
+    });
   }
   return innertubeInstance;
 }
@@ -16,6 +20,16 @@ async function getInnertube(): Promise<Innertube> {
 async function getTranscriptFromInnertube(
   videoId: string
 ): Promise<TranscriptSegment[]> {
+  const fs = await import('fs');
+  const path = await import('path');
+  const logFile = path.join(process.cwd(), 'transcript-debug.log');
+
+  const log = (msg: string) => {
+    fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`);
+  };
+
+  log(`--- Fetching for ${videoId} ---`);
+
   const yt = await getInnertube();
   const info = await yt.getInfo(videoId);
   const transcriptInfo = await info.getTranscript();
@@ -24,21 +38,26 @@ async function getTranscriptFromInnertube(
   const segments =
     transcriptInfo?.transcript?.content?.body?.initial_segments || [];
 
+  log(`Raw segments count: ${segments ? segments.length : 0}`);
+
   if (!segments || segments.length === 0) {
+    log('No raw segments found.');
     throw new Error("No transcript segments found");
   }
 
-  // デバッグ: 最初のセグメントの構造を確認（開発環境のみ）
-  if (segments.length > 0 && process.env.NODE_ENV === 'development') {
-    console.log(
-      `[Transcript Debug] First segment full structure:`,
-      JSON.stringify(segments[0], null, 2)
-    );
+  // デバッグ: 最初のセグメントの構造を確認
+  if (segments.length > 0) {
+    log(`First raw segment: ${JSON.stringify(segments[0])}`);
   }
 
   const result = (segments as RawTranscriptSegment[])
     .map((segment, index) => normalizeSegment(segment, index))
     .filter((seg): seg is TranscriptSegment => seg !== null);
+
+  log(`Normalized segments count: ${result.length}`);
+  if (result.length > 0) {
+    log(`First normalized segment: ${JSON.stringify(result[0])}`);
+  }
 
   // CRITICAL FIX: 0秒開始の字幕も有効なデータとして扱う
   // 以前は `seg.start > 0` でフィルタリングしていたが、これは0秒開始の字幕を除外してしまう
@@ -51,14 +70,9 @@ async function getTranscriptFromInnertube(
       seg.duration > 0
   );
 
+  log(`Valid segments count: ${validSegments.length}`);
   if (validSegments.length === 0 && result.length > 0) {
-    console.error(
-      `[Transcript Error] All ${result.length} segments have invalid timestamps!`
-    );
-  } else if (process.env.NODE_ENV === 'development') {
-    console.log(
-      `[Transcript] Processed ${result.length} segments, ${validSegments.length} valid`
-    );
+    log(`ERROR: All segments invalid. Dumping first normalized: ${JSON.stringify(result[0])}`);
   }
 
   return validSegments;
@@ -68,11 +82,20 @@ async function getTranscriptFromInnertube(
 async function getTranscriptFromCaptionTracks(
   videoId: string
 ): Promise<TranscriptSegment[]> {
+  const fs = await import('fs');
+  const path = await import('path');
+  const logFile = path.join(process.cwd(), 'transcript-debug.log');
+
+  const log = (msg: string) => {
+    fs.appendFileSync(logFile, `[${new Date().toISOString()}] [Fallback] ${msg}\n`);
+  };
+
   const yt = await getInnertube();
   const info = await yt.getInfo(videoId);
 
   const captionTracks = info.captions?.caption_tracks;
   if (!captionTracks || captionTracks.length === 0) {
+    log('No caption tracks available on info object.');
     throw new Error("No caption tracks available");
   }
 
@@ -81,22 +104,22 @@ async function getTranscriptFromCaptionTracks(
   const track = jaTrack || captionTracks[0];
 
   if (!track.base_url) {
+    log('Track has no base_url');
     throw new Error("Caption track has no base_url");
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      `[Transcript] Using caption track: ${track.name?.text || 'Unknown'} (${track.language_code || 'unknown'})`
-    );
-  }
+  log(`Using caption track: ${track.name?.text || 'Unknown'} (${track.language_code || 'unknown'})`);
 
   // XMLフォーマットでフェッチ（json3より信頼性が高い場合がある）
   const response = await fetch(track.base_url);
   const xml = await response.text();
 
   if (!xml || xml.length === 0) {
+    log('Empty response from caption track URL');
     throw new Error("Empty response from caption track URL");
   }
+
+  log(`XML fetched, length: ${xml.length}`);
 
   // XMLをパース（シンプルな正規表現パース）
   const segments: TranscriptSegment[] = [];
@@ -109,16 +132,12 @@ async function getTranscriptFromCaptionTracks(
 
     // データ品質チェック（負の値を除外）
     if (!Number.isFinite(start) || start < 0 || !Number.isFinite(duration) || duration <= 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(
-          `[Transcript Warning] Invalid XML timestamp: start="${match[1]}", dur="${match[2]}"`
-        );
-      }
+      // Log individual warnings if needed, but might be too noisy
+      // log(`Invalid XML timestamp: start="${match[1]}", dur="${match[2]}"`);
       continue;
     }
 
-    // HTMLエンティティをデコード（基本的なエンティティのみ、セキュリティ考慮）
-    // 注: Reactは自動的にエスケープするため、ここでデコードしても安全
+    // HTMLエンティティをデコード
     const text = match[3]
       .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
@@ -135,31 +154,27 @@ async function getTranscriptFromCaptionTracks(
     }
   }
 
-  if (segments.length > 0 && process.env.NODE_ENV === 'development') {
-    console.log(`[Transcript] XML parsed: first segment at ${segments[0].start}s`);
+  log(`XML parsed segments: ${segments.length}`);
+  if (segments.length > 0) {
+    log(`First parsed segment: ${JSON.stringify(segments[0])}`);
   }
 
   return segments;
 }
 
 // YouTubeの字幕を取得（ハイブリッドアプローチ）
+// YouTubeの字幕を取得（ハイブリッドアプローチ）
 export async function getTranscript(
   videoId: string
 ): Promise<TranscriptSegment[]> {
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[Transcript] Starting transcript fetch for video: ${videoId}`);
-  }
+  console.log(`[Transcript] Starting transcript fetch for video: ${videoId}`);
 
   // 1. Innertube getTranscript()を試す
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Transcript] Trying Innertube getTranscript...`);
-    }
+    console.log(`[Transcript] Trying Innertube getTranscript...`);
     const segments = await getTranscriptFromInnertube(videoId);
     if (segments.length > 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Transcript] ✓ Success via Innertube: ${segments.length} segments`);
-      }
+      console.log(`[Transcript] ✓ Success via Innertube: ${segments.length} segments`);
       return segments;
     }
   } catch (error) {
@@ -171,14 +186,10 @@ export async function getTranscript(
 
   // 2. caption_tracksのbase_urlから直接取得を試す
   try {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Transcript] Trying caption_tracks fallback...`);
-    }
+    console.log(`[Transcript] Trying caption_tracks fallback...`);
     const segments = await getTranscriptFromCaptionTracks(videoId);
     if (segments.length > 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Transcript] ✓ Success via caption_tracks: ${segments.length} segments`);
-      }
+      console.log(`[Transcript] ✓ Success via caption_tracks: ${segments.length} segments`);
       return segments;
     }
   } catch (error) {
