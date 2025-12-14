@@ -28,10 +28,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
-          # 1. パッケージをその場で（カレントディレクトリに）インストール
+          # 1. 最新のSDKを一時的にインストール
           npm install @google/generative-ai --no-save
 
-          # 2. Node.jsを実行してGeminiから回答を得る
+          # 2. 最新モデル Gemini 3 Pro (Preview) を使用して実行
           node << 'EOF'
           const { GoogleGenerativeAI } = require("@google/generative-ai");
           const fs = require('fs');
@@ -39,12 +39,14 @@ jobs:
           async function run() {
             try {
               const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-              const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+              
+              // 2025年12月時点の最新フラッグシップモデルを指定
+              const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
               
               const incidentReport = fs.readFileSync('docs/incident_reports.md', 'utf8');
               const projectRules = fs.readFileSync('CLAUDE.md', 'utf8');
               
-              const prompt = `あなたはAntigravity。以下のルールと経緯に基づき、日本語でREADME.mdの構成案を作成してください。
+              const prompt = `あなたはAntigravity。最新のGemini 3 Proとして、以下のプロジェクトルールと過去の修正経緯に基づき、日本語で今回の指示に対応してください。
               
               【プロジェクトルール】
               ${projectRules}
@@ -53,7 +55,9 @@ jobs:
               ${incidentReport}
               
               【今回の指示】
-              ${process.env.COMMENT_BODY}`;
+              ${process.env.COMMENT_BODY}
+              
+              回答は日本語でお願いします。`;
               
               const result = await model.generateContent(prompt);
               console.log(result.response.text());
